@@ -11,11 +11,14 @@ A DRAM chip contains multiple banks. A bank contains multiple DRAM rows and 1 ro
 There are other commands to refresh other rows and bank that is not used. Retention time is usually 64ms above so 64ms is used usually as the refresh time.
 
 # Latency:
- - Ready-to-access Latency = Activate->Read/Write. Time required to move charge from DRAM cell to sense amp. At this time, the sense amp might not have yet restored the DRAM cell to its original value.
+ - Ready-to-access Latency = Activate->Read/Write. Time required to move charge from DRAM cell to sense amp before data can be read. At this time, the sense amp might not have yet restored the DRAM cell to its original value as long as the sense amp is already charged.
 
  - Activation Latency/tRAS= Activate->Precharge. Time required to ensure the sense amp have already restored the DRAM cell to its original value before closing the row via Precharge. Activate is now complete. 
 
- - Precharge Latency = Precharge->Activate. Time required to restore the sense amp to "normal state" or half-VDD where it is neither 0 nor 1 but middle. 
+ - Precharge Latency = Precharge->Activate. Time required to restore the sense amp to "normal state" (half-VDD where it is neither 0 nor 1 but middle) before the row can be activated again
+
+![image](https://user-images.githubusercontent.com/87559347/210330740-06b1eb74-d0ab-462c-b947-80c6e3db7fe4.png)
+
 
 ### Note: The timing parameters are set for worst case, so we can reduce the timing delay slightly to optimise it further 
 
