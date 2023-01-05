@@ -18,6 +18,7 @@ A refresh period is usually 64ms. If there are 8192 rows (13 bit row address), t
 - Self-refresh = No need for external clock
 
 ## Latency:
+Latency or delay is due to the fact that DRAM uses capacitor which induces delay.
  - Ready-to-access Latency = Activate->Read/Write. Time required to move charge from DRAM cell to sense amp before data can be read. At this time, the sense amp might not have yet restored the DRAM cell to its original value as long as the sense amp is already charged.
 
  - Activation Latency/tRAS= Activate->Precharge. Time required to ensure the sense amp have already restored the DRAM cell to its original value before closing the row via Precharge. Activate is now complete. 
@@ -50,18 +51,16 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
 
 
-# SDR vs DDR  
+## SDR vs DDR  
 ![image](https://user-images.githubusercontent.com/87559347/210721957-f9eb339d-7710-4a35-8453-a6dce700c819.png)
 
 SDR don't have prefetch architecture nor DQS (only DQM for masking). 
 
-# Extra Notes
+## Extra Notes  
+![image](https://user-images.githubusercontent.com/87559347/210725173-83f4db35-af40-4493-a682-37cc0f00fc87.png)
 
-X4 (8 instance), x8(4 instance), x16(2 instance), = 32 bit word
-X8 means 8 bit data bus. So 4 instance will be needed to have a total of 32 bit word. 
-
-In DDR3, there is no page burst just 4 and 8 burst. 
-
+- X8 means 8 bit data bus. So 4 instance of X8 will be needed to have a total of 32 bit word. X4 (8 instance), x8(4 instance), x16(2 instance)
+- In DDR3, there is no page burst unlike in SDR. Just burst lengths of 4 and 8. 
 
 
 
