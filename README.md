@@ -65,5 +65,5 @@ SDR don't have prefetch architecture nor DQS (only DQM for masking).
 
 
 # Reference:
-https://safari.ethz.ch/projects_and_seminars/spring2022/doku.php?id=softmc
+https://safari.ethz.ch/projects_and_seminars/spring2022/doku.php?id=softmc  
 https://www.youtube.com/watch?v=dtE3RGmUxDw&t=4491s
