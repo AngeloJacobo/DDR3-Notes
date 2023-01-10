@@ -13,7 +13,7 @@ A DRAM chip contains multiple banks. A bank contains multiple DRAM rows and 1 ro
 Precharging charges the bit line and sense amp to VDD/2 so that reading/writing a DRAM cell is faster (the bit line needs only small charge to latch either direction). Sense amp are just SRAM cells (a D-latch with 6 CMOS so access is fast). There are other commands to refresh other rows and bank that is not used. Retention time is usually 64ms above so 64ms is used usually as the refresh time.
 
 ## Refresh:
-A refresh period is usually 64ms. If there are 8192 rows (13-bit row address), then 64ms/8192rows=7.8us/row. So a row must be refreshed EVERY 7.8us to cover all 8192 rows. Now this is a bottleneck since refresh takes time, what we can do is to **access other bank while another bank is being refreshed.**   
+A refresh period is usually 64ms. If there are 8192 rows (13-bit row address), then 64ms/8192rows=7.8us/row. So a row must be refreshed EVERY 7.8us to cover all 8192 rows. Now this is a bottleneck since refresh takes time, what we can do is to **access other bank while another bank is being refreshed.** Refresh is essentially activate + precharge a row every 64ms. Distributed refresh is what used mostly in today's controllers than burst refresh (all rows are refreshed consecutively immediately which has long pause time). DRAM Bank is unavailable during refresh. 
 - Auto-refresh = The controller gives external clock
 - Self-refresh = No need for external clock
 
@@ -79,23 +79,12 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - Rank = Consist of multiple DRAM chips to form a wide data interface (share address and command busses but provide different data, so an X8 DRAM chip will need 4 DRAM chips in 1 rank to form a 32-bit interface).
 - Channel = Different channel means a separate/different 64-bit data interface and memory controller.
 - The banks shares the address, data, and command buses.
+- With more banks, pipeline-access increases (accessing banks consecutively with least delay due to precharging+activate). With more channel, bandwidth increases since there are more data interface.
+- Address mapping tells how address bits are separated to row-bank-column address. Cache block interleaving is the most common one.
+![image](https://user-images.githubusercontent.com/87559347/211482538-9d9a3554-b9e9-4b4b-a004-26b69b5ca230.png)
+- Only small percentage of data retention file is actually 64ms. More than 75% is 256ms
 
 
-Image on Channel to rank to bank...
-Image on rount trip latency
-
-
-With more banks, you are increasing pipelining (accessing banks consecutively with least delay). With more channel, you are increasing bandwidth since more data interface
-
-Address mapping interleaving image
-
-Address mapping tells how consecutive data are located (cache block interleaving is the most common one) 
-
-Refresh is essentially activate+precharge a row every 64ms
-
-Distributed refresh is what used mostly in today's controllers than burst refresh (all rows are refreshed consecutively immediately which has long pause time). DRAM Bank is unavailable during refresh
-
-Only small percentage of data retention file is actually 64ms. More than 75% is 256ms
 
 Row Buffer Management Policy determine if row buffer will be closed or remain opened after read/Write access (image) 
 
