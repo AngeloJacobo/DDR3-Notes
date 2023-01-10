@@ -13,7 +13,7 @@ A DRAM chip contains multiple banks. A bank contains multiple DRAM rows and 1 ro
 Precharging charges the bit line and sense amp to VDD/2 so that reading/writing a DRAM cell is faster (the bit line needs only small charge to latch either direction). Sense amp are just SRAM cells (a D-latch with 6 CMOS so access is fast). There are other commands to refresh other rows and bank that is not used. Retention time is usually 64ms above so 64ms is used usually as the refresh time.
 
 ## Refresh:
-A refresh period is usually 64ms. If there are 8192 rows (13-bit row address), then 64ms/8192rows=7.8us/row. So a row must be refreshed EVERY 7.8us to cover all 8192 rows. Now this is a bottleneck since refresh takes time, what we can do is to **access other bank while another bank is being refreshed.** Refresh is essentially activate + precharge a row every 64ms. Distributed refresh is what used mostly in today's controllers than burst refresh (all rows are refreshed consecutively immediately which has long pause time). DRAM Bank is unavailable during refresh. 
+A refresh period is usually 64ms (32ms for higher temp since leakage is higher). If there are 8192 rows (13-bit row address), then 64ms/8192rows=7.8us/row. So a row must be refreshed EVERY 7.8us to cover all 8192 rows. Now this is a bottleneck since refresh takes time, what we can do is to **access other bank while another bank is being refreshed.** Refresh is essentially activate + precharge a row every 64ms. Distributed refresh is what used mostly in today's controllers than burst refresh (all rows are refreshed consecutively immediately which has long pause time). DRAM Bank is unavailable during refresh. 
 - Auto-refresh = The controller gives external clock
 - Self-refresh = No need for external clock
 
@@ -26,6 +26,7 @@ Latency or delay is due to the fact that DRAM uses capacitor which induces delay
  - Precharge Latency = Precharge->Activate. Time required to restore the sense amp to "normal state" (half-VDD where it is neither 0 nor 1 but middle) before the row can be activated again
 
 ![image](https://user-images.githubusercontent.com/87559347/210330740-06b1eb74-d0ab-462c-b947-80c6e3db7fe4.png)
+![image](https://user-images.githubusercontent.com/87559347/211511172-65bc9fa4-0899-4841-82d6-a447ae69d9c5.png)
 
 
 ### Note: The timing parameters are set for worst case, so we can reduce the timing delay slightly to optimise it further                 
@@ -86,13 +87,9 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 ![image](https://user-images.githubusercontent.com/87559347/211484662-71810b34-f0aa-4d19-9af3-4f21cc2d5bc9.png)
 - There are now a lot of DRAM types:
 ![image](https://user-images.githubusercontent.com/87559347/211484917-fd0d628a-e889-4c6f-8a31-0d962976c67e.png)
-
-
-DRAM scheduling policies is too complicated (image) and will not be added feature.
-
-Higher temp higher leakage (32ms refresh required)
-
-Activate opens the row and recharge the cell, we can read as long as open phase of activate is finished and then precharged only when recharge phase is over (activate is completely finished)
+- DRAM scheduling policies is too complicated:
+![image](https://user-images.githubusercontent.com/87559347/211502130-ca59e179-4ee8-4466-b02a-d8cd8a475637.png)
+- Activate opens the row and recharge the cell, we can read as long as open phase of activate is finished and then precharged only when recharge phase is over (precharge only when activate is completely finished)
 
 
 Add DRAM simulator
