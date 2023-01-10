@@ -58,7 +58,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - SDR don't have prefetch architecture nor DQS (only DQM for masking). 
 
 ## Extra Notes  
-![image](https://user-images.githubusercontent.com/87559347/210725173-83f4db35-af40-4493-a682-37cc0f00fc87.png)
+![image](https://user-images.githubusercontent.com/87559347/211517717-3ed998da-2816-47d8-b65e-24ce6662a99a.png)
 
 - X8 means 8 bit data bus. So 4 instance of X8 will be needed to have a total of 32 bit word. X4 (8 instance), x8(4 instance), x16(2 instance)
 - In DDR3, there is no page burst unlike in SDR. Just burst lengths of 4 and 8. 
@@ -90,9 +90,8 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - DRAM scheduling policies is too complicated:
 ![image](https://user-images.githubusercontent.com/87559347/211502130-ca59e179-4ee8-4466-b02a-d8cd8a475637.png)
 - Activate opens the row and recharge the cell, we can read as long as open phase of activate is finished and then precharged only when recharge phase is over (precharge only when activate is completely finished)
-
-
-Add DRAM simulator
+- DRAM simulator is very useful to provide abstraction when trying to add new features. Ramulator is one such simulator:
+![image](https://user-images.githubusercontent.com/87559347/211517301-3c90f11c-83d6-43c5-ab21-5eed697164a4.png)
 
 # Reference:
 https://safari.ethz.ch/projects_and_seminars/spring2022/doku.php?id=softmc  
