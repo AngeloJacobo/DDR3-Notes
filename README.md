@@ -49,6 +49,8 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - DQM = Data mask (unidirectional for write only)
 - DQS = Data strobe, clock used by data (bidirectional for read/write)
 
+## DRAM Subsystem Organization
+![image](https://user-images.githubusercontent.com/87559347/211479497-71289465-53c8-47f0-86a7-6cf455fc31de.png)
 
 
 ## SDR vs DDR  
@@ -67,31 +69,16 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
 # Onur Lectures
 
-High throughput sequencing used in Genome analysis is limited by data movement of DRAM or memory bottleneck
+- High throughput sequencing necessary in Genome analysis is limited by data movement of DRAM (memory bottleneck)
 
-Core count doubling every 2 years, DRAM DIMM capacity doubling every 3 years, but DRAM bandwidth (xGbit/sec) trend is worse (slower). Last is latency which did not changed much in past 20 years. 
-
-Capacity increase = By putting more cells in a die
-Bandwidth improvement = Increased clock rate, pin count
-Latency improvement =
-
- 
-LPDDR are low power but higher latency
-
-In processors, 50% of the time the processor is waiting for memory
-
-About 40% power is wasted on DRAM
-
-Heterogenous system = A CPU core has multiple memory sources: DRAM, NVM, GPU, and more (thus memory sources are different from each other and is heterogenous)
-
-Activation moves DRAM row to row buffer of Sense Amplifier. This row buffer is essentially a cache which increases hit rate if  access is consecutive.
-
-Bank share command, address, and data.
-
-Rank = Multiple DRAM chips to form a wide data interface (share address and command busses but provide different data, so an X8 DRAM chip will need 4 DRAM chips in 1 rank to form a 32-bit interface).
-
-
-Channel = Different channel means a separate/different 64-bit data interface. Two different channels will have separate memory controller.
+- Core count doubling every 2 years. DRAM DIMM capacity doubling (via putting more cells in a die) every 3 years. DRAM bandwidth (xGbit/sec) trend increase slower (via increasing clock rate and pin count). Latency did not changed much in past 20 years since this is limited by capacitor physics itself.
+- LPDDR are low power but higher latency
+- Refresh is a big downside of DRAM. In processors, 50% of the time is wasted waiting for memory. About 40% power is wasted on DRAM due to refresh cycle.
+- Heterogenous system = A CPU core has multiple memory sources: DRAM, NVM, GPU, and more. Memory sources are different from each other and is thus "heterogenous".
+- Activation moves DRAM row charge to row buffer of Sense Amplifier. This row buffer is essentially a cache which increases hit rate if access is consecutive.
+- Rank = Consist of multiple DRAM chips to form a wide data interface (share address and command busses but provide different data, so an X8 DRAM chip will need 4 DRAM chips in 1 rank to form a 32-bit interface).
+- Channel = Different channel means a separate/different 64-bit data interface and memory controller.
+- The banks shares the address, data, and command buses.
 
 
 Image on Channel to rank to bank...
