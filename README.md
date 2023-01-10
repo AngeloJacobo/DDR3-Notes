@@ -65,11 +65,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - DQS strobe is like a secondary clock used for data transfers
 - In write operation, the DDR memory is sampling DQ every clock edge of input clock. This means the DDR controller is tasked to shift the data so that data is stable at every clock edge. 
 - In read operation, the DDR memory changes the data every clock edge of input clock. This means data is stable except on the edges of the DDR memory input clock. The usual way for the DDR controller to read/sample the data is to shift the DDR controller's internal clock by 90° so it can sample the data away from this edge (middle of ages) 
-
-# Onur Lectures
-
 - High throughput sequencing necessary in Genome analysis is limited by data movement of DRAM (memory bottleneck)
-
 - Core count doubling every 2 years. DRAM DIMM capacity doubling (via putting more cells in a die) every 3 years. DRAM bandwidth (xGbit/sec) trend increase slower (via increasing clock rate and pin count). Latency did not changed much in past 20 years since this is limited by capacitor physics itself.
 - LPDDR (Low Power DDR) are low power but higher latency.
 - Refresh is a big downside of DRAM. In processors, 50% of the time is wasted waiting for memory. About 40% power is wasted on DRAM due to refresh cycle.
@@ -93,6 +89,8 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - DRAM simulator is very useful to provide abstraction when trying to add new features. Ramulator is one such simulator:
 ![image](https://user-images.githubusercontent.com/87559347/211517301-3c90f11c-83d6-43c5-ab21-5eed697164a4.png)
 
-# Reference:
-https://safari.ethz.ch/projects_and_seminars/spring2022/doku.php?id=softmc  
-https://www.youtube.com/watch?v=dtE3RGmUxDw&t=4491s
+# Reference:  
+[Memory and DRAM Basics (Onur Mutlu Lectures)](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-IymxXpH_9vlZCOeA7Yfn9)  
+[DRAM Basics in 7-part Series (Computer Science)](https://www.youtube.com/playlist?list=PLTd6ceoshpreE_xQfQ-akUMU1sEtthFdB)  
+[DDR DRAM Basics (VLSIGuru Training Institute)](https://www.youtube.com/watch?v=dtE3RGmUxDw&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=4&t=5096s)  
+[SoftMC and RowHammer](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi_1trfCckr6PTN8WR72icUO)  
