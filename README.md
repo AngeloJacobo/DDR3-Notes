@@ -54,15 +54,74 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 ## SDR vs DDR  
 ![image](https://user-images.githubusercontent.com/87559347/210721957-f9eb339d-7710-4a35-8453-a6dce700c819.png)
 
-SDR don't have prefetch architecture nor DQS (only DQM for masking). 
+- SDR don't have prefetch architecture nor DQS (only DQM for masking). 
 
 ## Extra Notes  
 ![image](https://user-images.githubusercontent.com/87559347/210725173-83f4db35-af40-4493-a682-37cc0f00fc87.png)
 
 - X8 means 8 bit data bus. So 4 instance of X8 will be needed to have a total of 32 bit word. X4 (8 instance), x8(4 instance), x16(2 instance)
 - In DDR3, there is no page burst unlike in SDR. Just burst lengths of 4 and 8. 
+- DQS strobe is like a secondary clock used for data transfers
+- In write operation, the DDR memory is sampling DQ every clock edge of input clock. This means the DDR controller is tasked to shift the data so that data is stable at every clock edge. 
+- In read operation, the DDR memory changes the data every clock edge of input clock. This means data is stable except on the edges of the DDR memory input clock. The usual way for the DDR controller to read/sample the data is to shift the DDR controller's internal clock by 90° so it can sample the data away from this edge (middle of ages) 
+
+# Onur Lectures
+
+High throughput sequencing used in Genome analysis is limited by data movement of DRAM or memory bottleneck
+
+Core count doubling every 2 years, DRAM DIMM capacity doubling every 3 years, but DRAM bandwidth (xGbit/sec) trend is worse (slower). Last is latency which did not changed much in past 20 years. 
+
+Capacity increase = By putting more cells in a die
+Bandwidth improvement = Increased clock rate, pin count
+Latency improvement =
+
+ 
+LPDDR are low power but higher latency
+
+In processors, 50% of the time the processor is waiting for memory
+
+About 40% power is wasted on DRAM
+
+Heterogenous system = A CPU core has multiple memory sources: DRAM, NVM, GPU, and more (thus memory sources are different from each other and is heterogenous)
+
+Activation moves DRAM row to row buffer of Sense Amplifier. This row buffer is essentially a cache which increases hit rate if  access is consecutive.
+
+Bank share command, address, and data.
+
+Rank = Multiple DRAM chips to form a wide data interface (share address and command busses but provide different data, so an X8 DRAM chip will need 4 DRAM chips in 1 rank to form a 32-bit interface).
 
 
+Channel = Different channel means a separate/different 64-bit data interface. Two different channels will have separate memory controller.
+
+
+Image on Channel to rank to bank...
+Image on rount trip latency
+
+
+With more banks, you are increasing pipelining (accessing banks consecutively with least delay). With more channel, you are increasing bandwidth since more data interface
+
+Address mapping interleaving image
+
+Address mapping tells how consecutive data are located (cache block interleaving is the most common one) 
+
+Refresh is essentially activate+precharge a row every 64ms
+
+Distributed refresh is what used mostly in today's controllers than burst refresh (all rows are refreshed consecutively immediately which has long pause time). DRAM Bank is unavailable during refresh
+
+Only small percentage of data retention file is actually 64ms. More than 75% is 256ms
+
+Row Buffer Management Policy determine if row buffer will be closed or remain opened after read/Write access (image) 
+
+All DRAM types images
+
+DRAM scheduling policies is too complicated (image) and will not be added feature.
+
+Higher temp higher leakage (32ms refresh required)
+
+Activate opens the row and recharge the cell, we can read as long as open phase of activate is finished and then precharged only when recharge phase is over (activate is completely finished)
+
+
+Add DRAM simulator
 
 # Reference:
 https://safari.ethz.ch/projects_and_seminars/spring2022/doku.php?id=softmc  
