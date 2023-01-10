@@ -93,7 +93,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - [Memory and DRAM Basics (Onur Mutlu Lectures)](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-IymxXpH_9vlZCOeA7Yfn9)  
 - [DRAM Basics in 7-part Series (Computer Science)](https://www.youtube.com/playlist?list=PLTd6ceoshpreE_xQfQ-akUMU1sEtthFdB)  
 - [DDR DRAM Basics (VLSIGuru Training Institute)](https://www.youtube.com/watch?v=dtE3RGmUxDw&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=4&t=5096s)  
-- [SoftMC and RowHammer](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi_1trfCckr6PTN8WR72icUO)  
+- [SoftMC and RowHammer (Onur Mutlu Lectures)](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi_1trfCckr6PTN8WR72icUO)  
 - [Memory Controllers (Onur Mutlu Lectures)](https://www.youtube.com/watch?v=TeG773OgiMQ&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=6&t=1232s)
 - [DDR4 Timings Explained Manually (Actually Hardcore Overclocking)](https://www.youtube.com/playlist?list=PLpS0n7xxSadUJE1fEuWfEMGvmMsVYGAbA)
 - [Transprecision-aware DDR Controller with PHY (oprecomp)](https://www.youtube.com/watch?v=Oet4I5u7HOE&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=6&t=1303s)
