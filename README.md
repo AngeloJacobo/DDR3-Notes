@@ -1,19 +1,19 @@
 # DDR3-Notes
 
-A DRAM chip contains multiple banks. A bank contains multiple DRAM rows and 1 row of sense amplifiers. A DRAM row contains a row of DRAM cells. A DRAM cell is composed of a capacitor and an access transistor. Only 1 row can be open in an open bank. 
+A DRAM chip contains multiple banks. A bank contains multiple DRAM rows and 1 row of sense amplifiers. A DRAM cell is composed of a capacitor and an access transistor. Only 1 row can be open in an open bank. 
 ![image](https://user-images.githubusercontent.com/87559347/210326311-5a2c8eee-7705-4c6f-a9f6-e7b116c0fca2.png)
 
 ## Steps:
 1. Initialize
 2. Set 2 registers: Mode Register (latency, burst length...) and Extended Mode Register (DLL settings) 
-3. Activate = Transferring the charge from DRAM cells of a single DRAM row to sense amp. This is destructive so the sense amp will then restore the DRAM cells with the same value. *Input: Bank and Row address*
+3. Activate = Transferring the charge from a DRAM row to sense amp. This is destructive so the sense amp will then restore the value of the DRAM cells. *Input: Bank and Row address*
 4. Read/Write = Read/Write to a specified column. *Input: Bank and Column address*
 3. Precharge = Close current row and prepare the sense amp for next activation. The sense amp is restored to VDD/2. The DRAM cell must already be restored to its original value before precharging. *Input: Bank address*  
 
 Precharging charges the bit line and sense amp to VDD/2 so that reading/writing a DRAM cell is faster (the bit line needs only small charge to latch either direction). Sense amp are just SRAM cells (a D-latch with 6 CMOS so access is fast). There are other commands to refresh other rows and bank that is not used. Retention time is usually 64ms above so 64ms is used usually as the refresh time.
 
 ## Refresh:
-A refresh period is usually 64ms. If there are 8192 rows (13 bit row address), then 64ms/8192rows=7.8us/row. So a row must be refreshed EVERY 7.8us to cover all 8192 rows. Now this is a bottleneck since refresh takes time, what we can do is to **access other bank while another bank is being refreshed.**   
+A refresh period is usually 64ms. If there are 8192 rows (13-bit row address), then 64ms/8192rows=7.8us/row. So a row must be refreshed EVERY 7.8us to cover all 8192 rows. Now this is a bottleneck since refresh takes time, what we can do is to **access other bank while another bank is being refreshed.**   
 - Auto-refresh = The controller gives external clock
 - Self-refresh = No need for external clock
 
@@ -21,7 +21,7 @@ A refresh period is usually 64ms. If there are 8192 rows (13 bit row address), t
 Latency or delay is due to the fact that DRAM uses capacitor which induces delay.
  - Ready-to-access Latency = Activate->Read/Write. Time required to move charge from DRAM cell to sense amp before data can be read. At this time, the sense amp might not have yet restored the DRAM cell to its original value as long as the sense amp is already charged.
 
- - Activation Latency/tRAS= Activate->Precharge. Time required to ensure the sense amp have already restored the DRAM cell to its original value before closing the row via Precharge. Activate is now complete. 
+ - Activation Latency/tRAS= Activate->Precharge. Time required to ensure the sense amp have already restored the DRAM cell to its original value before closing the row via Precharge. 
 
  - Precharge Latency = Precharge->Activate. Time required to restore the sense amp to "normal state" (half-VDD where it is neither 0 nor 1 but middle) before the row can be activated again
 
