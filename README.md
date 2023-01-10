@@ -28,9 +28,7 @@ Latency or delay is due to the fact that DRAM uses capacitor which induces delay
 ![image](https://user-images.githubusercontent.com/87559347/210330740-06b1eb74-d0ab-462c-b947-80c6e3db7fe4.png)
 
 
-### Note: The timing parameters are set for worst case, so we can reduce the timing delay slightly to optimise it further 
-
-SDR -> DDR ->DDR2 -> DDR3 -> DDR4 -> LPDDR (Low-power DDR)                      
+### Note: The timing parameters are set for worst case, so we can reduce the timing delay slightly to optimise it further                 
 
 ## Structure Hierarchy:
 1. CPU system (@800MHZ to GHz clock frequency)
@@ -72,7 +70,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - High throughput sequencing necessary in Genome analysis is limited by data movement of DRAM (memory bottleneck)
 
 - Core count doubling every 2 years. DRAM DIMM capacity doubling (via putting more cells in a die) every 3 years. DRAM bandwidth (xGbit/sec) trend increase slower (via increasing clock rate and pin count). Latency did not changed much in past 20 years since this is limited by capacitor physics itself.
-- LPDDR are low power but higher latency
+- LPDDR (Low Power DDR) are low power but higher latency.
 - Refresh is a big downside of DRAM. In processors, 50% of the time is wasted waiting for memory. About 40% power is wasted on DRAM due to refresh cycle.
 - Heterogenous system = A CPU core has multiple memory sources: DRAM, NVM, GPU, and more. Memory sources are different from each other and is thus "heterogenous".
 - Activation moves DRAM row charge to row buffer of Sense Amplifier. This row buffer is essentially a cache which increases hit rate if access is consecutive.
@@ -82,13 +80,13 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - With more banks, pipeline-access increases (accessing banks consecutively with least delay due to precharging+activate). With more channel, bandwidth increases since there are more data interface.
 - Address mapping tells how address bits are separated to row-bank-column address. Cache block interleaving is the most common one.
 ![image](https://user-images.githubusercontent.com/87559347/211482538-9d9a3554-b9e9-4b4b-a004-26b69b5ca230.png)
-- Only small percentage of data retention file is actually 64ms. More than 75% is 256ms
+- Only small percentage of data retention file is actually 64ms (<1%). More than 75% is 256ms. 
+![image](https://user-images.githubusercontent.com/87559347/211484745-a459bb27-41f7-4fec-974a-e9c324130204.png)
+- Row Buffer Management Policy determines if row buffer will be closed or remain opened after read/write access:
+![image](https://user-images.githubusercontent.com/87559347/211484662-71810b34-f0aa-4d19-9af3-4f21cc2d5bc9.png)
+- There are now a lot of DRAM types:
+![image](https://user-images.githubusercontent.com/87559347/211484917-fd0d628a-e889-4c6f-8a31-0d962976c67e.png)
 
-
-
-Row Buffer Management Policy determine if row buffer will be closed or remain opened after read/Write access (image) 
-
-All DRAM types images
 
 DRAM scheduling policies is too complicated (image) and will not be added feature.
 
