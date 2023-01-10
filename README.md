@@ -31,7 +31,7 @@ Latency or delay is due to the fact that DRAM uses capacitor which induces delay
 
 ### Note: The timing parameters are set for worst case, so we can reduce the timing delay slightly to optimise it further                 
 
-## Structure Hierarchy:
+## DDR Controller Structural Hierarchy:
 1. CPU system (@800MHZ to GHz clock frequency)
 2. DDR Controller 
 3. DDR PHY = (@ ~200MHz clock frequency)
@@ -40,7 +40,7 @@ Latency or delay is due to the fact that DRAM uses capacitor which induces delay
 In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (192Gbit/sec). However, the DDR memory core can only work at 200MHz since higher frequency means tighter timing constraint thus lower manufacturing yield. To compensate for this low frequency, prefetching is used on the DDR memory. 2n-prefetching fetches two words at same time to be stored to internal buffer. This will then be released by the DDR memory on the positive and negative edge of clock. DDR also needs DLL (Delay-Locked Looped to align DQ to DQS) and PLL (Phase-Locked Loop used by PHY to generate input clock for DDR memory).
 
 
-## Pins 
+## Pins:
 - {we, cas, ras} = command control
 - A0-A13 = Row/Column Address Bus
 - BA0-BA1 = Bank Address Bus
@@ -48,16 +48,16 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - DQM = Data mask (unidirectional for write only)
 - DQS = Data strobe, clock used by data (bidirectional for read/write)
 
-## DRAM Subsystem Organization
+## DRAM Subsystem Organization:
 ![image](https://user-images.githubusercontent.com/87559347/211479497-71289465-53c8-47f0-86a7-6cf455fc31de.png)
 
 
-## SDR vs DDR  
+## SDR (Single Data Rate) vs DDR (Double Data Rate):  
 ![image](https://user-images.githubusercontent.com/87559347/210721957-f9eb339d-7710-4a35-8453-a6dce700c819.png)
 
 - SDR don't have prefetch architecture nor DQS (only DQM for masking). 
 
-## Extra Notes  
+## Extra Notes:  
 ![image](https://user-images.githubusercontent.com/87559347/211517717-3ed998da-2816-47d8-b65e-24ce6662a99a.png)
 
 - X8 means 8 bit data bus. So 4 instance of X8 will be needed to have a total of 32 bit word. X4 (8 instance), x8(4 instance), x16(2 instance)
