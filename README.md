@@ -59,6 +59,18 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
 - SDR don't have prefetch architecture nor DQS (only DQM for masking). 
 
+## On-Die Termination (ODT)
+- ODT, or On-Die Termination, is a feature used in DDR3 memory to reduce signal reflections caused by mismatched impedances on the memory bus. When ODT is activated, a resistor is placed in parallel with the memory bus to match the impedance of the bus. The ODT signal is typically driven by the memory controller and is used to control the state of the ODT resistor. A low signal in ODT corresponds to the ODT resistor being turned off (high impedance since not connected), while a high signal corresponds to the ODT resistor being turned on.
+
+- When the memory controller sends a write command to the memory device, it also asserts the ODT signal. This causes the ODT resistor to be placed in parallel with the memory bus, effectively matching the impedance of the bus and reducing signal reflections. By having the ODT resistor turned on during a write operation, it helps to ensure that the write data is properly received by the memory device.
+
+- ODT is usually turned off during read operations, but this is not because of the absence of signal reflections during read operations, but rather the ODT is turned off to minimize the noise that may be present on the memory bus and improve the signal integrity.
+
+- When you enable dynamic ODT, and there is no write operation, the DDR3 SDRAM terminates to a termination setting of RTT_NOM; when there is a write operation, the DDR3 SDRAM terminates to a setting of RTT_WR. You can preset the values of RTT_NOM and RTT_WR by programming the mode registers, MR1 and MR2.
+
+- ZQ calibration is a process used in DDR3 memory systems to adjust precisely the internal impedance of the DDR for its ODT impedances and internal buffers. The ZQ pin is linked to a highly precise external resistor, which is used for high definition adjustments of the “On” impedance of output drivers and ODT impedances.
+
+
 ## Extra Notes:  
 ![image](https://user-images.githubusercontent.com/87559347/211517717-3ed998da-2816-47d8-b65e-24ce6662a99a.png)
 
@@ -96,15 +108,9 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
 - The DDR3 memory operates at high speeds, and the internal DLL helps to ensure that the data is read and written at the correct time. The DLL takes in the external clock signal and creates a new clock signal that is phase-aligned with the incoming data. 
 
+- The the DRAM core frequency is low (100-200 MHz), but with prefetching high data throughput can be achieved:
+![image](https://user-images.githubusercontent.com/87559347/212458190-c17437d8-1f8f-4922-aca7-22e82a578488.png)
 
-## On-Die Termination (ODT)
-- ODT, or On-Die Termination, is a feature used in DDR3 memory to reduce signal reflections caused by mismatched impedances on the memory bus. When ODT is activated, a resistor is placed in parallel with the memory bus to match the impedance of the bus. The ODT signal is typically driven by the memory controller and is used to control the state of the ODT resistor. A low signal in ODT corresponds to the ODT resistor being turned off (high impedance since not connected), while a high signal corresponds to the ODT resistor being turned on.
-
-- When the memory controller sends a write command to the memory device, it also asserts the ODT signal. This causes the ODT resistor to be placed in parallel with the memory bus, effectively matching the impedance of the bus and reducing signal reflections. By having the ODT resistor turned on during a write operation, it helps to ensure that the write data is properly received by the memory device.
-
-- ODT is usually turned off during read operations, but this is not because of the absence of signal reflections during read operations, but rather the ODT is turned off to minimize the noise that may be present on the memory bus and improve the signal integrity.
-
-- ZQ calibration is a process used in DDR3 memory systems to adjust precisely the internal impedance of the DDR for its ODT impedances and internal buffers. The ZQ pin is linked to a highly precise external resistor, which is used for high definition adjustments of the “On” impedance of output drivers and ODT impedances.
 
 # Reference (YouTube):  
 - [Memory and DRAM Basics Series (Onur Mutlu Lectures)](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-IymxXpH_9vlZCOeA7Yfn9)  
@@ -115,17 +121,17 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - [DDR4 Timings Explained Manually Series (Actually Hardcore Overclocking)](https://www.youtube.com/playlist?list=PLpS0n7xxSadUJE1fEuWfEMGvmMsVYGAbA)
 - [Transprecision-aware DDR Controller with PHY (oprecomp)](https://www.youtube.com/watch?v=Oet4I5u7HOE&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=6&t=1303s)
 
+# Reference (Sites):
 
-https://electronics.stackexchange.com/questions/484746/why-cant-clock-be-directly-used-instead-of-dqs-in-ddr-during-read-and-write  
-
-https://bit-tech.net/reviews/tech/memory/the_secrets_of_pc_memory_part_4/5/  
-
-https://www.systemverilog.io/ddr4-initialization-and-calibration  
-https://daffy1108.wordpress.com/2010/09/02/understanding-ddr3-write-leveling-and-read-leveling/  
-https://www.intel.com/content/www/us/en/docs/programmable/683385/17-0/read-and-write-leveling.html  
-https://www.anandtech.com/show/3851/everything-you-always-wanted-to-know-about-sdram-memory-but-were-afraid-to-ask/3  
-https://course.ccs.neu.edu/com3200/parent/NOTES/DDR.html  
-https://www.allaboutcircuits.com/technical-articles/executing-commands-memory-dram-commands/  
+- [Why use DQS for read/write?](https://electronics.stackexchange.com/questions/484746/why-cant-clock-be-directly-used-instead-of-dqs-in-ddr-during-read-and-write) 
+- [ODT and ZQ Calibration (SERIES)](https://bit-tech.net/reviews/tech/memory/the_secrets_of_pc_memory_part_4/5/)  
+- [DDR4 SDRAM - Initialization, Training and Calibration](https://www.systemverilog.io/ddr4-initialization-and-calibration)  
+- [DDR3 Write Leveling and Read Leveling](https://daffy1108.wordpress.com/2010/09/02/understanding-ddr3-write-leveling-and-read-leveling/)  
+- [Why need write and read leveling? (SERIES)](https://bit-tech.net/reviews/tech/memory/the_secrets_of_pc_memory_part_4/4/)
+- [More on write and read leveling](https://www.intel.com/content/www/us/en/docs/programmable/683385/17-0/read-and-write-leveling.html)
+- [SDRAM as simple state machine (SERIES)](https://www.anandtech.com/show/3851/everything-you-always-wanted-to-know-about-sdram-memory-but-were-afraid-to-ask/3)  
+- [DDR operation and timing parameters](https://course.ccs.neu.edu/com3200/parent/NOTES/DDR.html)  
+- [DRAM Basic Commands](https://www.allaboutcircuits.com/technical-articles/executing-commands-memory-dram-commands/)  
 https://www.rohde-schwarz.com/ph/applications/triggering-read-and-write-cycles-of-ddr3-memories-application-card_56279-580225.html  
 
 
