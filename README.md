@@ -93,9 +93,9 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
 - The DDR3 memory operates at high speeds, and the internal DLL helps to ensure that the data is read and written at the correct time. The DLL takes in the external clock signal and creates a new clock signal that is phase-aligned with the incoming data. 
 
-- On writes, the host sends DQS phase shifted by 90 degrees and the DRAM catches DQ in the middle of its (the DQS) validity window. On reads, the DRAM sends DQS aligned with DQ, and the host (the controller) phase-shifts DQS internally using a Delay Locked Loop (DLL) and captures DQ with that internal clock.
+- On writes, the host sends DQS phase shifted by 90 degrees and the DRAM catches DQ in the middle of its validity window. On reads, the DRAM sends DQS aligned with DQ, and the host (the controller) phase-shifts DQS internally using a Delay Locked Loop (DLL) and captures DQ with that internal clock.
 
-- ZQ calibration is a process used in DDR3 memory systems to adjust the internal impedance of the memory to a precise value. The ZQ pin is linked to a highly precise external resistor, which is used for high definition adjustments of the “On” impedance of output drivers and ODT impedances.
+- ZQ calibration is a process used in DDR3 memory systems to adjust the internal impedance of the DDR to a precise value. The ZQ pin is linked to a highly precise external resistor, which is used for high definition adjustments of the “On” impedance of output drivers and ODT impedances.
 
 
 - ODT, or On-Die Termination, is a feature used in DDR3 memory to reduce signal reflections caused by mismatched impedances on the memory bus. When ODT is activated, a resistor is placed in parallel with the memory bus to match the impedance of the bus. The ODT signal is typically driven by the memory controller and is used to control the state of the ODT resistor. A low signal in ODT corresponds to the ODT resistor being turned off (high impedance since not connected), while a high signal corresponds to the ODT resistor being turned on.
