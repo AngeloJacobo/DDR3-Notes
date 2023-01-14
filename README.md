@@ -91,7 +91,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
 - In the power-down state (precharge power-down or active power-down), the DRAM still requires refresh commands to be sent to maintain the memory contents. Since no refresh operations are performed in this mode, the device may not remain in the power-down state longer than the refresh period (64ms) 
 
-- The internal DLL of the DDR3 is used to synchronize the internal clock of the memory with the external clock signal. The DDR3 memory operates at high speeds, and the internal DLL helps to ensure that the data is read and written at the correct time. The DLL takes in the external clock signal and creates a new clock signal that is phase-aligned with the incoming data. 
+- The DDR3 memory operates at high speeds, and the internal DLL helps to ensure that the data is read and written at the correct time. The DLL takes in the external clock signal and creates a new clock signal that is phase-aligned with the incoming data. 
 
 - On writes, the host sends DQS phase shifted by 90 degrees and the DRAM catches DQ in the middle of its (the DQS) validity window. On reads, the DRAM sends DQS aligned with DQ, and the host (the controller) phase-shifts DQS internally using a Delay Locked Loop (DLL) and captures DQ with that internal clock.
 
