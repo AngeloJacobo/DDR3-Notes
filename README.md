@@ -114,3 +114,35 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - [Memory Controllers (Onur Mutlu Lectures)](https://www.youtube.com/watch?v=TeG773OgiMQ&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=6&t=1232s)
 - [DDR4 Timings Explained Manually Series (Actually Hardcore Overclocking)](https://www.youtube.com/playlist?list=PLpS0n7xxSadUJE1fEuWfEMGvmMsVYGAbA)
 - [Transprecision-aware DDR Controller with PHY (oprecomp)](https://www.youtube.com/watch?v=Oet4I5u7HOE&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=6&t=1303s)
+
+
+https://electronics.stackexchange.com/questions/484746/why-cant-clock-be-directly-used-instead-of-dqs-in-ddr-during-read-and-write
+https://bit-tech.net/reviews/tech/memory/the_secrets_of_pc_memory_part_4/5/
+https://www.systemverilog.io/ddr4-initialization-and-calibration
+https://daffy1108.wordpress.com/2010/09/02/understanding-ddr3-write-leveling-and-read-leveling/
+https://www.intel.com/content/www/us/en/docs/programmable/683385/17-0/read-and-write-leveling.html
+https://www.anandtech.com/show/3851/everything-you-always-wanted-to-know-about-sdram-memory-but-were-afraid-to-ask/3
+https://course.ccs.neu.edu/com3200/parent/NOTES/DDR.html
+https://www.allaboutcircuits.com/technical-articles/executing-commands-memory-dram-commands/
+https://www.rohde-schwarz.com/ph/applications/triggering-read-and-write-cycles-of-ddr3-memories-application-card_56279-580225.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
