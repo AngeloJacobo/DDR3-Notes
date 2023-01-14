@@ -65,8 +65,11 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - X8 means 8 bit data bus. So 4 instance of X8 will be needed to have a total of 32 bit word. X4 (8 instance), x8(4 instance), x16(2 instance)
 - In DDR3, there is no page burst unlike in SDR. Just burst lengths of 4 and 8. 
 - DQS strobe is like a secondary clock used for data transfers
-- In write operation, the DDR memory is sampling DQ every clock edge of input clock. This means the DDR controller is tasked to shift the data so that data is stable at every clock edge. 
-- In read operation, the DDR memory changes the data every clock edge of input clock. This means data is stable except on the edges of the DDR memory input clock. The usual way for the DDR controller to read/sample the data is to shift the DDR controller's internal clock by 90° so it can sample the data away from this edge (middle of ages) 
+- In write operation, the DDR memory is sampling DQ every edge of DQS (the DQS is aligned to the input clock). This means the DDR controller is tasked to shift the data so that data is stable at every clock edge. 
+- In read operation, the DDR memory changes the data every edge of DQS (the DQS is aligned to the input clock). This means data is stable except on the edges of the DDR memory input clock. The usual way for the DDR controller to read/sample the data is to shift the DDR controller's internal clock by 90° so it can sample the data on the middle of data eye.
+- - On writes, the host sends DQS phase shifted by 90 degrees and the DRAM catches DQ in the middle of its validity window (using DQS as the clock edge). On reads, the DRAM sends DQS aligned with DQ, and the host (the controller) phase-shifts DQS internally using a Delay Locked Loop (DLL) so that it can capture DQ on the middle of its data eye.
+
+
 - High throughput sequencing necessary in Genome analysis is limited by data movement of DRAM (memory bottleneck)
 - Core count doubling every 2 years. DRAM DIMM capacity doubling (via putting more cells in a die) every 3 years. DRAM bandwidth (xGbit/sec) trend increase slower (via increasing clock rate and pin count). Latency did not changed much in past 20 years since this is limited by capacitor physics itself.
 - LPDDR (Low Power DDR) are low power but higher latency.
@@ -93,9 +96,6 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
 - The DDR3 memory operates at high speeds, and the internal DLL helps to ensure that the data is read and written at the correct time. The DLL takes in the external clock signal and creates a new clock signal that is phase-aligned with the incoming data. 
 
-- On writes, the host sends DQS phase shifted by 90 degrees and the DRAM catches DQ in the middle of its validity window. On reads, the DRAM sends DQS aligned with DQ, and the host (the controller) phase-shifts DQS internally using a Delay Locked Loop (DLL) and captures DQ with that internal clock.
-
-
 
 ## On-Die Termination (ODT)
 - ODT, or On-Die Termination, is a feature used in DDR3 memory to reduce signal reflections caused by mismatched impedances on the memory bus. When ODT is activated, a resistor is placed in parallel with the memory bus to match the impedance of the bus. The ODT signal is typically driven by the memory controller and is used to control the state of the ODT resistor. A low signal in ODT corresponds to the ODT resistor being turned off (high impedance since not connected), while a high signal corresponds to the ODT resistor being turned on.
@@ -116,15 +116,17 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - [Transprecision-aware DDR Controller with PHY (oprecomp)](https://www.youtube.com/watch?v=Oet4I5u7HOE&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=6&t=1303s)
 
 
-https://electronics.stackexchange.com/questions/484746/why-cant-clock-be-directly-used-instead-of-dqs-in-ddr-during-read-and-write
-https://bit-tech.net/reviews/tech/memory/the_secrets_of_pc_memory_part_4/5/
-https://www.systemverilog.io/ddr4-initialization-and-calibration
-https://daffy1108.wordpress.com/2010/09/02/understanding-ddr3-write-leveling-and-read-leveling/
-https://www.intel.com/content/www/us/en/docs/programmable/683385/17-0/read-and-write-leveling.html
-https://www.anandtech.com/show/3851/everything-you-always-wanted-to-know-about-sdram-memory-but-were-afraid-to-ask/3
-https://course.ccs.neu.edu/com3200/parent/NOTES/DDR.html
-https://www.allaboutcircuits.com/technical-articles/executing-commands-memory-dram-commands/
-https://www.rohde-schwarz.com/ph/applications/triggering-read-and-write-cycles-of-ddr3-memories-application-card_56279-580225.html
+https://electronics.stackexchange.com/questions/484746/why-cant-clock-be-directly-used-instead-of-dqs-in-ddr-during-read-and-write  
+
+https://bit-tech.net/reviews/tech/memory/the_secrets_of_pc_memory_part_4/5/  
+
+https://www.systemverilog.io/ddr4-initialization-and-calibration  
+https://daffy1108.wordpress.com/2010/09/02/understanding-ddr3-write-leveling-and-read-leveling/  
+https://www.intel.com/content/www/us/en/docs/programmable/683385/17-0/read-and-write-leveling.html  
+https://www.anandtech.com/show/3851/everything-you-always-wanted-to-know-about-sdram-memory-but-were-afraid-to-ask/3  
+https://course.ccs.neu.edu/com3200/parent/NOTES/DDR.html  
+https://www.allaboutcircuits.com/technical-articles/executing-commands-memory-dram-commands/  
+https://www.rohde-schwarz.com/ph/applications/triggering-read-and-write-cycles-of-ddr3-memories-application-card_56279-580225.html  
 
 
 
