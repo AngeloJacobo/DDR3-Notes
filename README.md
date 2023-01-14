@@ -15,7 +15,9 @@ Precharging charges the bit line and sense amp to VDD/2 so that reading/writing 
 ## Refresh:
 A refresh period is usually 64ms (32ms for higher temp since leakage is higher). If there are 8192 rows (13-bit row address), then 64ms/8192rows=7.8us/row. So a row must be refreshed EVERY 7.8us to cover all 8192 rows. Now this is a bottleneck since refresh takes time, what we can do is to **access other bank while another bank is being refreshed.** Refresh is essentially activate + precharge a row every 64ms. Distributed refresh is what used mostly in today's controllers than burst refresh (all rows are refreshed consecutively immediately which has long pause time). DRAM Bank is unavailable during refresh. 
 - Auto-refresh = The controller gives external clock
-- Self-refresh = No need for external clock
+- Self-refresh = No need for external clock  
+
+In the power-down state (precharge power-down or active power-down), the DRAM still requires refresh commands to be sent to maintain the memory contents. Since no refresh operations are performed in this mode, the device may not remain in the power-down state longer than the refresh period (64ms) 
 
 ## Latency:
 Latency or delay is due to the fact that DRAM uses capacitor which induces delay.
@@ -89,22 +91,20 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - DRAM simulator is very useful to provide abstraction when trying to add new features. Ramulator is one such simulator:
 ![image](https://user-images.githubusercontent.com/87559347/211517301-3c90f11c-83d6-43c5-ab21-5eed697164a4.png)
 
-- In the power-down state (precharge power-down or active power-down), the DRAM still requires refresh commands to be sent to maintain the memory contents. Since no refresh operations are performed in this mode, the device may not remain in the power-down state longer than the refresh period (64ms) 
-
 - The DDR3 memory operates at high speeds, and the internal DLL helps to ensure that the data is read and written at the correct time. The DLL takes in the external clock signal and creates a new clock signal that is phase-aligned with the incoming data. 
 
 - On writes, the host sends DQS phase shifted by 90 degrees and the DRAM catches DQ in the middle of its validity window. On reads, the DRAM sends DQS aligned with DQ, and the host (the controller) phase-shifts DQS internally using a Delay Locked Loop (DLL) and captures DQ with that internal clock.
 
-- ZQ calibration is a process used in DDR3 memory systems to adjust the internal impedance of the DDR to a precise value. The ZQ pin is linked to a highly precise external resistor, which is used for high definition adjustments of the “On” impedance of output drivers and ODT impedances.
 
 
+## On-Die Termination (ODT)
 - ODT, or On-Die Termination, is a feature used in DDR3 memory to reduce signal reflections caused by mismatched impedances on the memory bus. When ODT is activated, a resistor is placed in parallel with the memory bus to match the impedance of the bus. The ODT signal is typically driven by the memory controller and is used to control the state of the ODT resistor. A low signal in ODT corresponds to the ODT resistor being turned off (high impedance since not connected), while a high signal corresponds to the ODT resistor being turned on.
 
 - When the memory controller sends a write command to the memory device, it also asserts the ODT signal. This causes the ODT resistor to be placed in parallel with the memory bus, effectively matching the impedance of the bus and reducing signal reflections. By having the ODT resistor turned on during a write operation, it helps to ensure that the write data is properly received by the memory device.
 
 - ODT is usually turned off during read operations, but this is not because of the absence of signal reflections during read operations, but rather the ODT is turned off to minimize the noise that may be present on the memory bus and improve the signal integrity.
 
-
+- ZQ calibration is a process used in DDR3 memory systems to adjust precisely the internal impedance of the DDR for its ODT impedances and internal buffers. The ZQ pin is linked to a highly precise external resistor, which is used for high definition adjustments of the “On” impedance of output drivers and ODT impedances.
 
 # Reference (YouTube):  
 - [Memory and DRAM Basics Series (Onur Mutlu Lectures)](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-IymxXpH_9vlZCOeA7Yfn9)  
