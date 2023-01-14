@@ -89,6 +89,52 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - DRAM simulator is very useful to provide abstraction when trying to add new features. Ramulator is one such simulator:
 ![image](https://user-images.githubusercontent.com/87559347/211517301-3c90f11c-83d6-43c5-ab21-5eed697164a4.png)
 
+
+
+
+Power-down is entered when CKE is registered LOW. If power-down occurs when all banks are idle, this mode is referred to as precharge power-down; if power-down occurs when there is a row active in any bank, this mode is referred to as active power-down.
+
+In the power down state, the DRAM still requires refresh commands to be sent to maintain the memory contents.
+
+
+If power-down occurs when all
+banks are idle, this mode is referred to as precharge
+power-down; if power-down occurs when there is a row
+active in any bank, this mode is referred to as active
+power-down. Entering power-down deactivates the in-
+put and output buffers, excluding CKE, for maximum
+power savings while in standby. The device may not
+remain in the power-down state longer than the re-
+fresh period (64ms) since no refresh operations are
+performed in this mode.
+
+
+
+The DLL is used to synchronize the internal clock of the memory with the external clock signal
+
+
+ZQ calibration is a process used in DDR3 memory systems to adjust the internal impedance of the memory to optimal levels for performance.
+
+On writes, the host sends DQS phase shifted by 90 degrees and the DRAM catches DQ in the middle of its validity window. On reads, the DRAM sends DQS aligned with DQ, and the host phase-shifts DQS internally using a Delay Locked Loop (DLL) and captures DQ with that internal clock
+
+
+The ZQ pin is linked to a highly precise external resistor, which is used for high definition adjustments of the “On” impedance of output drivers and ODT impedances.
+
+ODT, or On-Die Termination, is a feature used in DDR3 memory to reduce signal reflections caused by mismatched impedances on the memory bus. When ODT is activated, a resistor is placed in parallel with the memory bus to match the impedance of the bus. The ODT signal is typically driven by the memory controller and is used to control the state of the ODT resistor. A low signal in ODT corresponds to the ODT resistor being turned off, while a high signal corresponds to the ODT resistor being turned on.
+
+ZQ calibration adjusts the internal resistors accurately, which will then be used by ODT.
+
+
+
+
+During a write operation, the ODT (On-Die Termination) is typically set to a high signal, which corresponds to the ODT resistor being turned on.
+
+When the memory controller sends a write command to the memory device, it also asserts the ODT signal. This causes the ODT resistor to be placed in parallel with the memory bus, effectively matching the impedance of the bus and reducing signal reflections. By having the ODT resistor turned on during a write operation, it helps to ensure that the write data is properly received by the memory device.
+ ODT is usually turned off during read operations, but this is not because of the absence of signal reflections during read operations, but rather the ODT is turned off to minimize the noise that may be present on the memory bus and improve the signal integrity.
+ODT is used to reduce signal reflections by matching the impedance of the memory bus, but it does not help to reduce noise on the memory bus. Therefore, having the ODT resistor turned off during a read operation can help to minimize the noise that may be present on the memory bus and improve the signal integrity.
+
+
+
 # Reference (YouTube):  
 - [Memory and DRAM Basics Series (Onur Mutlu Lectures)](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-IymxXpH_9vlZCOeA7Yfn9)  
 - [DRAM Basics in 7-part Series (Computer Science)](https://www.youtube.com/playlist?list=PLTd6ceoshpreE_xQfQ-akUMU1sEtthFdB)  
