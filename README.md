@@ -115,6 +115,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 ![image](https://user-images.githubusercontent.com/87559347/212458190-c17437d8-1f8f-4922-aca7-22e82a578488.png)
 
 ## February Notes
+### https://github.com/buttercutter/DDR
 - You can use Micron DDR3 Simulation module to test the controller even without physical ddr3
 - ODDR2 is just used so that the internal clock can be directed to the output pin, this is the more likely use than doing DDR using ODDR2
 - Low Speed: Use the clk (50MHz) and divide the frequency by 4 to generate a slow clock than can be shifted 180 degrees or 90 degrees. LOW SPEED IS USED TO TEST CONTROLLER BEFORE RUNNING IN HIGHER FREQUENCY 
@@ -122,7 +123,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - OBUF is used to connect internal pins to FPGA pin fabric
 - WRITE: we have to phase-shift DQS by 90 degrees and output the phase-shifted DQS to RAM. This means initially the dqs is first aligned to dq, but is phase shifted when sent to RAM
 - READ: phase-shifts the incoming dqs and dqs_n signals by 90 degrees to sample at the middle of incoming `dq` signal
- 
+- Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal 
 
 
 # Reference (YouTube):  
