@@ -117,7 +117,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 ## February Notes
 ### https://github.com/buttercutter/DDR
 - You can use Micron DDR3 Simulation module to test the controller even without physical ddr3
-- ODDR2 is just used so that the internal clock can be directed to the output pin, this is the more likely use than doing DDR using ODDR2. 
+- ODDR2 is just used so that the internal clock can be directed to the output pin, this is the more likely use than doing DDR using ODDR2. dq_w is also connected to ODDR2 (with clk_90 and ~clk_90 since DQ is always 90 phase shifted when writing to RAM), multiple ODDR2 is instantiated using `generate`
 - OBUF is used to connect internal pins to FPGA pin fabric
 - Output flow: OSERDES -> ODDR2 (output DDR buffer) -> ODELAY (DQS Centering) -> IOBUF (for inout) -> RAM
 - Input flow: RAM -> IOBUF (for inout) -> IDELAY (DQS Centering) -> IDDR2 (input DDR buffer) -> ISERDES		
@@ -131,6 +131,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
     - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
   - Fast Clock
     - Use IODELAY2 primitive for phase shift alignment between READ DQS strobe and 'ck' signal
+    - posedge of ck_dynamic_90 is used to sample odd number DQ, posedeg of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then send to clk_270 domain using asyn_fifo
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal 
 
 
