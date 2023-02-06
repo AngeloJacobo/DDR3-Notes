@@ -125,9 +125,12 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - High Speed: Use PLL to generate 333.333 MHz from 50MHZ.(with 0,90,180,270 phase shift) . Then use DPLL to dynamically change phase shift for read operation
 - WRITE: we have to phase-shift DQS by 90 degrees and output the phase-shifted DQS to RAM. This means initially the dqs is first aligned to dq, but is phase shifted when sent to RAM
 - READ: phase-shifts the incoming dqs and dqs_n signals by 90 degrees to sample at the middle of incoming `dq` signal
-  - Detect the incoming DQS if its high or low, then from this detect the rising and falling edges of DQS.
-  - Since we now know the rising and falling edges, we can now detect the middle of DQS (neither rising nor falling) and this is where can sample the incoming DQ.
-  - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
+  - Slow Clock
+    - Detect the incoming DQS if its high or low, then from this detect the rising and falling edges of DQS.
+    - Since we now know the rising and falling edges, we can now detect the middle of DQS (neither rising nor falling) and this is where can sample the incoming DQ.
+    - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
+  - Fast Clock
+    - Use IODELAY2 primitive for phase shift alignment between READ DQS strobe and 'ck' signal
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal 
 
 
