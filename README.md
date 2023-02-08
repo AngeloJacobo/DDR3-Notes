@@ -149,8 +149,21 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
        ![image](https://user-images.githubusercontent.com/87559347/217502509-ad68b370-ec55-4368-a033-98985f29b391.png)
 
     - **WRITE OPERATION**
-       - Uses two dq `dq_w_d0` and `dq_w_d1` which is then sent to ODDR2 to form the double data rate DQ `dq_w`
-       - Needs two separate OSERDES:
+       - OSERDES is only SDR (Single-Data Rate) so unless the OSERDES is DDR, we will need two separate OSERDES. The output of these 2 OSERDES (`dq_w_d0` and `dq_w_d1`) will be used by ODDR2 to form the double data rate output of `dq_w`.
+       ```
+        // There is need to use two separate OSERDES because ODDR2 expects its D0 and D1 inputs to be
+        // presented to it at a DDR clock rate of 303MHz (D0 at posedge of 303MHz, D1 at negedge of 303MHz),
+        // where 303MHz is the minimum DDR3 RAM working frequency.
+        // However, one single SDR OSERDES alone could not fulfill this data rate requirement of ODDR2 (unless the OSERDES is DDR)
+        
+        // For example, a 8:1 DDR OSERDES which takes 8 inputs D0,D1,D2,D3,D4,D5,D6,D7 and output them serially
+        // The values supplied by D0,D2,D4,D6 are clocked out on the rising edge
+        // The values supplied by D1,D3,D5,D7 are clocked out on the falling edge
+        
+        // The solution is to create two 4:1 SDR OSERDES modules.
+        // One of the 2 modules will take D0,D2,D4,D6 inputs and output them serially. You route its output to the D0 pin of the ODDR.
+        // The other will output D1,D3,D5,D7 serially. You route its output to the D1 pin of the ODDR.
+     ```
 
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
 - In differntial signals (DQS-DQS_n and CK-CK_n), you must not use inverter to generate the differential signal or else there will be time skew between the positive and negative signal. SO, generate the differential signal separately without relying in inverter logic
