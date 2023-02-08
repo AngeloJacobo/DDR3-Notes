@@ -153,7 +153,9 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
        - Needs two separate OSERDES:
 
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
-- 
+- In differntial signals (DQS-DQS_n and CK-CK_n), you must not use inverter to generate the differential signal or else there will be time skew between the positive and negative signal. SO, generate the differential signal separately without relying in inverter logic
+- DQ, DQS, DQS_n = IOBUF 
+-  CK and CK_n = OBUF
 
 
 # Reference (YouTube):  
