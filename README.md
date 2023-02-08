@@ -130,9 +130,24 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
     - Since we now know the rising and falling edges, we can now detect the middle of DQS (neither rising nor falling) and this is where can sample the incoming DQ.
     - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
   - Fast Clock
+    - Generate 333MHz ck_90, ck_180, and ck_270 via PLL
     - Use IODELAY2 primitive for phase shift alignment between READ DQS strobe and 'ck' signal
     - posedge of ck_dynamic_90 is used to sample odd number DQ, posedeg of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then send to clk_270 domain using asyn_fifo
+    - Uses two dq `dq_w_d0` and `dq_w_d1` which is then sent to ODDR2 to form the double data rate DQ `dq_w`
+    - Needs two separate OSERDES:
+    ```
+     // why need IOSERDES primitives ?
+     // because you want a memory transaction rate much higher than the main clock frequency 
+     // but you don't want to require a very high main clock frequency
+
+     // send a write of 8w bits to the memory controller, 
+     // which is similar to bundling multiple transactions into one wider one,
+     // and the memory controller issues 8 writes of w bits to the memory, 
+     // where w is the data width of your memory interface. (w == DQ_BITWIDTH)
+     // This literally means SERDES_RATIO=8
+  ```
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal 
+- 
 
 
 # Reference (YouTube):  
@@ -143,6 +158,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - [Memory Controllers (Onur Mutlu Lectures)](https://www.youtube.com/watch?v=TeG773OgiMQ&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=6&t=1232s)
 - [DDR4 Timings Explained Manually Series (Actually Hardcore Overclocking)](https://www.youtube.com/playlist?list=PLpS0n7xxSadUJE1fEuWfEMGvmMsVYGAbA)
 - [Transprecision-aware DDR Controller with PHY (oprecomp)](https://www.youtube.com/watch?v=Oet4I5u7HOE&list=PLqaZ9TGIKESdSTNiqb3M0FTcI0iNqShG0&index=6&t=1303s)
+
 
 # Reference (Sites):
 - [DRAM Basic Commands](https://www.allaboutcircuits.com/technical-articles/executing-commands-memory-dram-commands/) 
