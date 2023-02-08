@@ -131,23 +131,27 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
     - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
   - Fast Clock
     - **READ OPERATION**
-       - Generate 333MHz ck_90, ck_180, and ck_270 via PLL
-       - Use IODELAY2 primitive for phase shift alignment between READ DQS strobe and 'ck' signal
-       - posedge of ck_dynamic_90 is used to sample odd number DQ, posedeg of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then send to clk_270 domain using asyn_fifo. The output is `dq_r_q0` and `dq_r_q1`
-    - **WRITE OPERATION**
-       - Uses two dq `dq_w_d0` and `dq_w_d1` which is then sent to ODDR2 to form the double data rate DQ `dq_w`
-       - Needs two separate OSERDES:
-       ```
+       - Generate 333MHz ck_90, ck_180, and ck_270 via PLL (from 50MHz main clock)
+       - posedge of ck_dynamic_90 is used to sample odd number DQ, posedge of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then sent to clk_270 domain using asyn_fifo. The output is `dq_r_q0` and `dq_r_q1`.
+       - `dq_r_q0` and `dq_r_q1` is then both sent to its respective deserializer, the parallel output will then be arranged to form the whole 8 burst data.
+       - IOSERDES is used to convert the high-speed data to low speed parallel data which can be processed on lower clock frequency (50MHz main clock)
+        ```
         // why need IOSERDES primitives ?
         // because you want a memory transaction rate (333MHz)  much higher than the main clock frequency (50MHz)
         // but you don't want to require a very high main clock frequency (main clock is maintained to just 50MHz)
 
-        // send a write of 8w bits to the memory controller, 
+        // send a write of 8w (1 burst) bits to the memory controller, 
         // which is similar to bundling multiple transactions into one wider one,
         // and the memory controller issues 8 writes of w bits to the memory, 
         // where w is the data width of your memory interface. (w == DQ_BITWIDTH)
         // This literally means SERDES_RATIO=8
-     ```
+       ```
+       ![image](https://user-images.githubusercontent.com/87559347/217502509-ad68b370-ec55-4368-a033-98985f29b391.png)
+
+    - **WRITE OPERATION**
+       - Uses two dq `dq_w_d0` and `dq_w_d1` which is then sent to ODDR2 to form the double data rate DQ `dq_w`
+       - Needs two separate OSERDES:
+
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
 - 
 
