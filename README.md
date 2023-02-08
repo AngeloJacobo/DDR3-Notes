@@ -132,9 +132,9 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
   - Fast Clock
     - **READ OPERATION**
        - Generate 333MHz ck_90, ck_180, and ck_270 via PLL (from 50MHz main clock)
-       - posedge of ck_dynamic_90 is used to sample odd number DQ, posedge of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then sent to clk_270 domain using asyn_fifo. The output is `dq_r_q0` and `dq_r_q1`.
+       - posedge of ck_dynamic_90 is used to sample odd number DQ, posedge of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then sent to clk_270 domain using asyn_fifo. The output is `dq_r_q0` (even burst) and `dq_r_q1` (odd burst).
        - `dq_r_q0` and `dq_r_q1` is then both sent to its respective deserializer, the parallel output will then be arranged to form the whole 8 burst data.
-       - IOSERDES is used to convert the high-speed data to low speed parallel data which can be processed on lower clock frequency (50MHz main clock)
+       - IOSERDES is used to convert the high-speed serial data to low speed parallel data which can be processed on lower clock frequency (50MHz main clock). Using only one SERDES will be complicated since we will need to arrange the high speed serial data (from d0-d2-d4-d6 and d1-d3-d5-d7 to d0-d1-d2-d3-d4-d5-d6-d7) so we will use two separate SERDES and just arrange the low speed parallel data which is much easier.  
         ```
         // why need IOSERDES primitives ?
         // because you want a memory transaction rate (333MHz)  much higher than the main clock frequency (50MHz)
