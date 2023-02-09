@@ -163,7 +163,9 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
         // The solution is to create two 4:1 SDR OSERDES modules.
         // One of the 2 modules will take D0,D2,D4,D6 inputs and output them serially. You route its output to the D0 pin of the ODDR.
         // The other will output D1,D3,D5,D7 serially. You route its output to the D1 pin of the ODDR.
-     ```
+       ```
+       !![image](https://user-images.githubusercontent.com/87559347/217683606-c43ca1e0-aff3-4ef9-93ac-cae2299651a9.png)
+
 
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
 - In differntial signals (DQS-DQS_n and CK-CK_n), you must not use inverter to generate the differential signal or else there will be time skew between the positive and negative signal. SO, generate the differential signal separately without relying in inverter logic
