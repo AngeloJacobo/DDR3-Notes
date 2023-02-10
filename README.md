@@ -129,12 +129,13 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
     - Detect the incoming DQS if its high or low, then from this detect the rising and falling edges of DQS.
     - Since we now know the rising and falling edges, we can now detect the middle of DQS (neither rising nor falling) and this is where can sample the incoming DQ.
     - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
+    - Not highspeed so no IOBUF to control DQS and DQ, just assignment statement to output. With highspeed, IOBUF is used on DQ and DQS
   - Fast Clock
     - **READ OPERATION**
        - Generate 333MHz ck_90, ck_180, and ck_270 via PLL (from 50MHz main clock)
        - posedge of ck_dynamic_90 is used to sample odd number DQ, posedge of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then sent to clk_270 domain using asyn_fifo. The output is `dq_r_q0` (even burst) and `dq_r_q1` (odd burst).
        - `dq_r_q0` and `dq_r_q1` is then both sent to its respective deserializer, the parallel output will then be arranged to form the whole 8 burst data.
-       - IOSERDES is used to convert the high-speed serial data to low speed parallel data which can be processed on lower clock frequency (50MHz main clock). Using only one SERDES will be complicated since we will need to arrange the high speed serial data (from d0-d2-d4-d6 and d1-d3-d5-d7 to d0-d1-d2-d3-d4-d5-d6-d7) so we will use two separate SERDES and just arrange the low speed parallel data which is much easier.  
+       - ISERDES (deserializer, series to parallel) is used to convert the high-speed serial data to low speed parallel data which can be processed on lower clock frequency (50MHz main clock). Using only one ISERDES will be complicated since we will need to arrange the high speed serial data (from d0-d2-d4-d6 and d1-d3-d5-d7 to d0-d1-d2-d3-d4-d5-d6-d7) so we will use two separate SERDES and just arrange the low speed parallel data which is much easier.  
         ```
         // why need IOSERDES primitives ?
         // because you want a memory transaction rate (333MHz)  much higher than the main clock frequency (50MHz)
@@ -149,7 +150,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
        ![image](https://user-images.githubusercontent.com/87559347/217502509-ad68b370-ec55-4368-a033-98985f29b391.png)
 
     - **WRITE OPERATION**
-       - OSERDES is only SDR (Single-Data Rate) so unless the OSERDES is DDR, we will need two separate OSERDES. The output of these 2 OSERDES (`dq_w_d0` and `dq_w_d1`) will be used by ODDR2 to form the double data rate output of `dq_w`.
+       - OSERDES (serializer, parallel to series) is only SDR (Single-Data Rate) so unless the OSERDES is DDR, we will need two separate OSERDES. The output of these 2 OSERDES (`dq_w_d0` and `dq_w_d1`) will be used by ODDR2 to form the double data rate output of `dq_w`.
        ```
         // There is need to use two separate OSERDES because ODDR2 expects its D0 and D1 inputs to be
         // presented to it at a DDR clock rate of 303MHz (D0 at posedge of 303MHz, D1 at negedge of 303MHz),
@@ -164,7 +165,31 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
         // One of the 2 modules will take D0,D2,D4,D6 inputs and output them serially. You route its output to the D0 pin of the ODDR.
         // The other will output D1,D3,D5,D7 serially. You route its output to the D1 pin of the ODDR.
        ```
-       !![image](https://user-images.githubusercontent.com/87559347/217683606-c43ca1e0-aff3-4ef9-93ac-cae2299651a9.png)
+       ![image](https://user-images.githubusercontent.com/87559347/217683606-c43ca1e0-aff3-4ef9-93ac-cae2299651a9.png)
+    -  IODELAY2 is not used "due to some internal hardware issues of Spartan 6"
+        - The first instance of IODELAY2 is used as input delay for read operation, delay the `dq_r` by half clock period by default so `ck` can now sample the DQ at center of the data eye, instead of using `ck_90` and `ck_270` to sample the DQ. The delay can be adjusted for MPR read calibration method.
+        - The second instance of IODELAY is used also as input delay but for write operation, delay the `dq_w` output from ODDR2 (clocked by `ck`) by 90 from DQS instead of using `ck_90` to clock ODDR2. This delay is for write calibration levelling.
+        ```
+          // the IODELAY2 primitives for DQ bits could not be shared between read and write operations
+          // because if they are to be shared, they would be some combinational logic to select between 
+          // read and write operations which is not helpful at all for read operations.
+          // Note that for read pipeline, IDELAY is used before ISERDES, which means any extra logic for input of
+          // IDELAY will slow things down significantly until the read operations might fail to calibrate delay
+        ```
+    - Observation: On read operation, we are still using `ck` to sample the dq_r, and we are not depending on DQ_S
+    - `data_read_is_ongoing` (ck180) -> ck -> dqs_iobuf_en
+      `data_read_is_ongoing` (ck180) -> ck270 ->  dq_iobuf_en
+         - For non-x16, tri-state controller is `data_read_is_ongoing` but `dqs_iobuf_en` for x16.
+
+         - is data_read_is_ongoing actually ck_180 or 83MHZ (clk_serdes)??
+         - what is clk_serdes for???
+
+          why dq_iobuf_en at ck270 domain?
+          hypothesis:
+          dq_r is sampled at ck270 and ck90, thus dq_r is on ck270
+          dq_w must also be on ck270 since DQ is shifted by 90 from DQS
+          THUS dq_iobuf_en is also on ck270
+
 
 
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
