@@ -177,21 +177,19 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
           // IDELAY will slow things down significantly until the read operations might fail to calibrate delay
         ```
     - Observation: On read operation, we are still using `ck` to sample the dq_r, and we are not depending on DQ_S
-    - `data_read_is_ongoing` (ck180) -> ck -> dqs_iobuf_en
+    - `data_read_is_ongoing` (ck180) -> ck -> dqs_iobuf_en  
       `data_read_is_ongoing` (ck180) -> ck270 ->  dq_iobuf_en
-         - For non-x16, tri-state controller is `data_read_is_ongoing` but `dqs_iobuf_en` for x16.
-
-         - is data_read_is_ongoing actually ck_180 or 83MHZ (clk_serdes)??
-         - what is clk_serdes for???
-
-          why dq_iobuf_en at ck270 domain?
+         - For non-x16, tri-state controller is `data_read_is_ongoing` but for x16 its `dqs_iobuf_en` .
+         ```
+         Is data_read_is_ongoing actually ck_180 or 83MHZ (clk_serdes)??
+         What is clk_serdes for???
+         Why dq_iobuf_en at ck270 domain?
           hypothesis:
           dq_r is sampled at ck270 and ck90, thus dq_r is on ck270
           dq_w must also be on ck270 since DQ is shifted by 90 from DQS
           THUS dq_iobuf_en is also on ck270
-
-
-
+         ```
+         
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
 - In differntial signals (DQS-DQS_n and CK-CK_n), you must not use inverter to generate the differential signal or else there will be time skew between the positive and negative signal. SO, generate the differential signal separately without relying in inverter logic
 - DQ, DQS, DQS_n = IOBUF 
