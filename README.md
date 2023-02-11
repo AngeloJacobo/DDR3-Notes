@@ -166,7 +166,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
         // The other will output D1,D3,D5,D7 serially. You route its output to the D1 pin of the ODDR.
        ```
        ![image](https://user-images.githubusercontent.com/87559347/217683606-c43ca1e0-aff3-4ef9-93ac-cae2299651a9.png)
-    -  IODELAY2 is not used "due to some internal hardware issues of Spartan 6"
+    -  IODELAY2 is not used "due to some internal hardware issues of Spartan 6". In read operation, "PLL dynamic phase shift is used in lieu of IODELAY2 primitive for phase shift alignment between READ DQS strobe and 'ck' signal".
         - The first instance of IODELAY2 is used as input delay for read operation, delay the `dq_r` by half clock period by default so `ck` can now sample the DQ at center of the data eye, instead of using `ck_90` and `ck_270` to sample the DQ. The delay can be adjusted for MPR read calibration method.
         - The second instance of IODELAY is used also as input delay but for write operation, delay the `dq_w` output from ODDR2 (clocked by `ck`) by 90 from DQS instead of using `ck_90` to clock ODDR2. This delay is for write calibration levelling.
         ```
