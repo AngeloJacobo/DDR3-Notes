@@ -125,12 +125,12 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - High Speed: Use PLL to generate 333.333 MHz from 50MHZ.(with 0,90,180,270 phase shift) . Then use DPLL to dynamically change phase shift for read operation
 - WRITE: we have to phase-shift DQS by 90 degrees and output the phase-shifted DQS to RAM. This means initially the dqs is first aligned to dq, but is phase shifted when sent to RAM
 - READ: phase-shifts the incoming dqs and dqs_n signals by 90 degrees to sample at the middle of incoming `dq` signal
-  - Slow Clock
+  - Slow Clock (controller clock = clk 50MHz)
     - Detect the incoming DQS if its high or low, then from this detect the rising and falling edges of DQS.
     - Since we now know the rising and falling edges, we can now detect the middle of DQS (neither rising nor falling) and this is where can sample the incoming DQ.
     - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
     - Not highspeed so no IOBUF to control DQS and DQ, just assignment statement to output. With highspeed, IOBUF is used on DQ and DQS
-  - Fast Clock
+  - Fast Clock (controller clock = clk_serdes 83.333MHz)
     - **READ OPERATION**
        - Generate 333MHz ck_90, ck_180, and ck_270 via PLL (from 50MHz main clock)
        - posedge of ck_dynamic_90 is used to sample odd number DQ, posedge of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then sent to clk_270 domain using asyn_fifo. The output is `dq_r_q0` (even burst) and `dq_r_q1` (odd burst).
@@ -189,6 +189,31 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
           dq_w must also be on ck270 since DQ is shifted by 90 from DQS
           THUS dq_iobuf_en is also on ck270
          ```
+      - Tt is possible to do all 8 refresh commands inside one tREFI cycles then postpone refresh commands for 8*tREFI. tREFI is the "average" interval between REFRESH commands.
+      - reset (input, clk domain) is synced to ck_270 domain as reset input to IPs like IOSERDES.
+
+main_state (clk_serdes) -> asyn_fifo -> ck_180
+dram_command_bits (clk_serdes) -> asyn_fifo -> ck_180 (external pins)
+r_address (clk_serdes) -> asyn_fifo -> ck_180 (exterbnal pins)
+r_bank_address (clk_serdes) -> asy_fifo -> ck_180 (external pins)
+
+FIFO is used for queueing commands. Full-rate DRAM commands transaction is possible with the usage of either (an OSERDES with a serialization factor of 2) or (2 words ck/2 in, ck out FIFO). You can stuff multiple user request commands where permitted in between command execution inside DRAM. One example would be where other banks may be activated while a write command was just sent.
+
+
+
+SERDES enable multiple read and write (1 burst, 1 command) BUT IT CANNOT DO MULTIPLE COMMANDS AT ONCE (there is no command queue so at clk_serdes 83.333MHz, there can only be 1 command per 4 ck cycle of 333MHz)
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
          
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
 - In differntial signals (DQS-DQS_n and CK-CK_n), you must not use inverter to generate the differential signal or else there will be time skew between the positive and negative signal. SO, generate the differential signal separately without relying in inverter logic
