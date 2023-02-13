@@ -176,6 +176,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
           // Note that for read pipeline, IDELAY is used before ISERDES, which means any extra logic for input of
           // IDELAY will slow things down significantly until the read operations might fail to calibrate delay
         ```
+        - MPR Read Calibration will then be used to align the DQS (phase shifted initially by zero) to ck via the IODELAY. Aligning the DQS will also align DQ (already shifted by 90).
     - Observation: On read operation, we are still using `ck` to sample the dq_r, and we are not depending on DQ_S
     - `data_read_is_ongoing` (ck180) -> ck -> dqs_iobuf_en  
       `data_read_is_ongoing` (ck180) -> ck270 ->  dq_iobuf_en
