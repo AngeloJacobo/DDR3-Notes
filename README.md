@@ -191,10 +191,13 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
          ```
      - It is possible to do all 8 refresh commands inside one tREFI cycles then postpone refresh commands for 8*tREFI. tREFI is the "average" interval between REFRESH commands.
      - reset (input, clk domain) is synced to ck_270 domain as reset input to IPs like IOSERDES.
-     - Controller sends `main_state`, `dram_command_bits`, `r_address`, and `r_bank_address` from clk_serdes domain to ck_180 to external pins via asyn_fifo.
+     - Controller FSM (clk_serdes, 83.3333MHz) sends `main_state`, `dram_command_bits`, `r_address`, and `r_bank_address` to asyn_fifo to ck_180 (333MHz) then to external pins.
      - FIFO can be used for queueing commands BUT IS NOT USED ON THIS DESIGN. Full-rate DRAM commands transaction is possible with the usage of either (an OSERDES with a serialization factor of 2) or (2 words ck/2 in, ck out FIFO). You can stuff multiple user request commands where permitted in between command execution inside DRAM. One example would be where other banks may be activated while a write command was just sent.
      - On this design, the SERDES enable multiple read and write (1 burst, 1 command) BUT IT CANNOT DO MULTIPLE COMMANDS AT ONCE (there is no command FIFO queue so at clk_serdes 83.333MHz, there can only be 1 command per 4 ck cycle of 333MHz) 
-         
+     - Only at the first cycle of each FSM state are cmd sent, the rest are NOPs.
+     ![image](https://user-images.githubusercontent.com/87559347/218376154-5e450d45-8f92-4e97-87ac-c4bc8325f31f.png)
+
+     
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
 - In differntial signals (DQS-DQS_n and CK-CK_n), you must not use inverter to generate the differential signal or else there will be time skew between the positive and negative signal. SO, generate the differential signal separately without relying in inverter logic
 - DQ, DQS, DQS_n = IOBUF 
