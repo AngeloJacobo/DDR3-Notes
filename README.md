@@ -112,7 +112,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 - The DDR3 memory operates at high speeds, and the internal DLL helps to ensure that the data is read and written at the correct time. The DLL takes in the external clock signal and creates a new clock signal that is phase-aligned with the incoming data. 
 
 - The the DRAM core frequency is low (100-200 MHz), but with prefetching high data throughput can be achieved:
-![image](https://user-images.githubusercontent.com/87559347/212458190-c17437d8-1f8f-4922-aca7-22e82a578488.png)
+![image](https://user-images.githubusercontent.com/87559347/212458190-c17437d8-1f8f-4922-aca7-22e82a578488.png) 
 
 ## February Notes
 ### https://github.com/buttercutter/DDR
