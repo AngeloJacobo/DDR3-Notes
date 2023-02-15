@@ -118,107 +118,105 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 ### https://github.com/buttercutter/DDR
 - You can use Micron DDR3 Simulation module to test the controller even without physical ddr3
 - ODDR2 is just used so that the internal clock can be directed to the output pin, this is the more likely use than doing DDR using ODDR2. dq_w is also connected to ODDR2 (with clk_90 and ~clk_90 since DQ is always 90 phase shifted when writing to RAM), multiple ODDR2 is instantiated using `generate`
-- OBUF is used to connect internal pins to FPGA pin fabric
+- OBUF is used to connect the internal pins to FPGA output pin
 - Output flow: OSERDES -> ODDR2 (output DDR buffer) -> ODELAY (DQS Centering) -> IOBUF (for inout) -> RAM
 - Input flow: RAM -> IOBUF (for inout) -> IDELAY (DQS Centering) -> IDDR2 (input DDR buffer) -> ISERDES		
 - Low Speed: Use the clk (50MHz) and divide the frequency by 4 to generate a slow clock than can be shifted 180 degrees or 90 degrees. LOW SPEED IS USED TO TEST CONTROLLER BEFORE RUNNING IN HIGHER FREQUENCY 
 - High Speed: Use PLL to generate 333.333 MHz from 50MHZ.(with 0,90,180,270 phase shift) . Then use DPLL to dynamically change phase shift for read operation
-- WRITE: we have to phase-shift DQS by 90 degrees and output the phase-shifted DQS to RAM. This means initially the dqs is first aligned to dq, but is phase shifted when sent to RAM
-- READ: phase-shifts the incoming dqs and dqs_n signals by 90 degrees to sample at the middle of incoming `dq` signal
-  - Slow Clock (controller clock = clk 50MHz)
-    - Detect the incoming DQS if its high or low, then from this detect the rising and falling edges of DQS.
-    - Since we now know the rising and falling edges, we can now detect the middle of DQS (neither rising nor falling) and this is where can sample the incoming DQ.
-    - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
-    - Not highspeed so no IOBUF to control DQS and DQ, just assignment statement to output. With highspeed, IOBUF is used on DQ and DQS
-  - Fast Clock (controller clock = clk_serdes 83.333MHz)
-    - **READ OPERATION**
-       - Generate 333MHz ck_90, ck_180, and ck_270 via PLL (from 50MHz main clock)
-       - posedge of ck_dynamic_90 is used to sample odd number DQ, posedge of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then sent to clk_270 domain using asyn_fifo. The output is `dq_r_q0` (even burst) and `dq_r_q1` (odd burst).
-       - `dq_r_q0` and `dq_r_q1` is then both sent to its respective deserializer, the parallel output will then be arranged to form the whole 8 burst data.
-       - ISERDES (deserializer, series to parallel) is used to convert the high-speed serial data to low speed parallel data which can be processed on lower clock frequency (50MHz main clock). Using only one ISERDES will be complicated since we will need to arrange the high speed serial data (from d0-d2-d4-d6 and d1-d3-d5-d7 to d0-d1-d2-d3-d4-d5-d6-d7) so we will use two separate SERDES and just arrange the low speed parallel data which is much easier.  
-        ```
-        // why need IOSERDES primitives ?
-        // because you want a memory transaction rate (333MHz)  much higher than the main clock frequency (50MHz)
-        // but you don't want to require a very high main clock frequency (main clock is maintained to just 50MHz)
 
-        // send a write of 8w (1 burst) bits to the memory controller, 
-        // which is similar to bundling multiple transactions into one wider one,
-        // and the memory controller issues 8 writes of w bits to the memory, 
-        // where w is the data width of your memory interface. (w == DQ_BITWIDTH)
-        // This literally means SERDES_RATIO=8
+- **Slow Clock (controller clock = clk 50MHz)**
+  - Detect the incoming DQS if its high or low, then from this detect the rising and falling edges of DQS.
+  - Since we now know the rising and falling edges, we can now detect the middle of DQS (neither rising nor falling) and this is where can sample the incoming DQ.
+  - The controller clock is 4x the DDR RAM clock to detect the 0, 90, 180, and 270. 90 and 270 degrees are needed in READ operation since this is the middle of DQS rising-falling edges. 0 and 180 degrees is for differential output.
+  - Not highspeed (slow clock) so no IOBUF to control DQS and DQ, just assignment statement to output. With highspeed (fast clock), IOBUF is used on DQ and DQS.
+  
+- **Fast Clock (controller clock = clk_serdes 83.333MHz)**. `clk_serdes` is @83.333MHz which is 1/4 of DDR clock `ck`. Read or write burst operation will take 1 `clk_serdes` or 4 `ck`, this means we can still maximize reading or writing even a slower controller clock by issuing a burst with having SERDES ratio of 8 (1 burst).
+  - **READ OPERATION**
+     - Generate 333MHz ck_90, ck_180, and ck_270 via PLL (from 50MHz main clock)
+     - posedge of ck_dynamic_90 is used to sample odd number DQ, posedge of ck_dynamic_270 (or negedge of ck_dynamic_90) is used to sample even number DQ. This is then sent to clk_270 domain using asyn_fifo. The output is `dq_r_q0` (even burst) and `dq_r_q1` (odd burst).
+     - `dq_r_q0` and `dq_r_q1` is then both sent to its respective deserializer, the parallel output will then be arranged to form the whole 8 burst data.
+     - ISERDES (deserializer, series to parallel) is used to convert the high-speed serial data to low speed parallel data which can be processed on lower clock frequency (50MHz main clock). Using only one ISERDES will be complicated since we will need to arrange the high speed serial data (from d0-d2-d4-d6 and d1-d3-d5-d7 to d0-d1-d2-d3-d4-d5-d6-d7) so we will use two separate SERDES and just arrange the low speed parallel data which is much easier.  
+      ```
+      // why need IOSERDES primitives ?
+      // because you want a memory transaction rate (333MHz)  much higher than the main clock frequency (50MHz)
+      // but you don't want to require a very high main clock frequency (main clock is maintained to just 50MHz)
+
+      // send a write of 8w (1 burst) bits to the memory controller, 
+      // which is similar to bundling multiple transactions into one wider one,
+      // and the memory controller issues 8 writes of w bits to the memory, 
+      // where w is the data width of your memory interface. (w == DQ_BITWIDTH)
+      // This literally means SERDES_RATIO=8
+     ```
+     ![image](https://user-images.githubusercontent.com/87559347/219001850-b16ee3fa-e3cf-4c5a-816f-d378c6e2bf49.png)
+
+
+  - **WRITE OPERATION**
+     - OSERDES (serializer, parallel to series) is only SDR (Single-Data Rate) so unless the OSERDES is DDR, we will need two separate OSERDES. The output of these 2 OSERDES (`dq_w_d0` and `dq_w_d1`) will be used by ODDR2 to form the double data rate output of `dq_w`.
+     ```
+      // There is need to use two separate OSERDES because ODDR2 expects its D0 and D1 inputs to be
+      // presented to it at a DDR clock rate of 303MHz (D0 at posedge of 303MHz, D1 at negedge of 303MHz),
+      // where 303MHz is the minimum DDR3 RAM working frequency.
+      // However, one single SDR OSERDES alone could not fulfill this data rate requirement of ODDR2 (unless the OSERDES is DDR)
+
+      // For example, a 8:1 DDR OSERDES which takes 8 inputs D0,D1,D2,D3,D4,D5,D6,D7 and output them serially
+      // The values supplied by D0,D2,D4,D6 are clocked out on the rising edge
+      // The values supplied by D1,D3,D5,D7 are clocked out on the falling edge
+
+      // The solution is to create two 4:1 SDR OSERDES modules.
+      // One of the 2 modules will take D0,D2,D4,D6 inputs and output them serially. You route its output to the D0 pin of the ODDR.
+      // The other will output D1,D3,D5,D7 serially. You route its output to the D1 pin of the ODDR.
+     ```
+     ![image](https://user-images.githubusercontent.com/87559347/217683606-c43ca1e0-aff3-4ef9-93ac-cae2299651a9.png)
+  -  IODELAY2 is not used "due to some internal hardware issues of Spartan 6". In read operation, "PLL dynamic phase shift is used in lieu of IODELAY2 primitive for phase shift alignment between READ DQS strobe and 'ck' signal".
+      - The first instance of IODELAY2 is used as input delay for read operation, delay the `dq_r` by half clock period by default so `ck` can now sample the DQ at center of the data eye, instead of using `ck_90` and `ck_270` to sample the DQ. The delay can be adjusted for MPR read calibration method.
+      - The second instance of IODELAY is used also as input delay but for write operation, delay the `dq_w` output from ODDR2 (clocked by `ck`) by 90 from DQS instead of using `ck_90` to clock ODDR2. This delay is for write calibration levelling.
+      ```
+        // the IODELAY2 primitives for DQ bits could not be shared between read and write operations
+        // because if they are to be shared, they would be some combinational logic to select between 
+        // read and write operations which is not helpful at all for read operations.
+        // Note that for read pipeline, IDELAY is used before ISERDES, which means any extra logic for input of
+        // IDELAY will slow things down significantly until the read operations might fail to calibrate delay
+      ```
+      - MPR Read Calibration will then be used to align the DQS (phase shifted initially by zero) to ck via the IODELAY. Aligning the DQS will also align DQ (already shifted by 90).
+  - Observation: On read operation, we are still using `ck` to sample the dq_r, and we are not depending on DQ_S
+  - `data_read_is_ongoing` (clk_serdes) -> ck -> dqs_iobuf_en  
+    `data_read_is_ongoing` (clk_serdes) -> ck270 ->  dq_iobuf_en
+       - For non-x16, tri-state controller is `data_read_is_ongoing` but for x16 its `dqs_iobuf_en` .
        ```
-       ![image](https://user-images.githubusercontent.com/87559347/219001850-b16ee3fa-e3cf-4c5a-816f-d378c6e2bf49.png)
-
-
-    - **WRITE OPERATION**
-       - OSERDES (serializer, parallel to series) is only SDR (Single-Data Rate) so unless the OSERDES is DDR, we will need two separate OSERDES. The output of these 2 OSERDES (`dq_w_d0` and `dq_w_d1`) will be used by ODDR2 to form the double data rate output of `dq_w`.
+       Why dq_iobuf_en at ck270 domain?
+        hypothesis:
+        dq_r is sampled at ck270 and ck90, thus dq_r is on ck270
+        dq_w must also be on ck270 since DQ is shifted by 90 from DQS
+        THUS dq_iobuf_en is also on ck270
        ```
-        // There is need to use two separate OSERDES because ODDR2 expects its D0 and D1 inputs to be
-        // presented to it at a DDR clock rate of 303MHz (D0 at posedge of 303MHz, D1 at negedge of 303MHz),
-        // where 303MHz is the minimum DDR3 RAM working frequency.
-        // However, one single SDR OSERDES alone could not fulfill this data rate requirement of ODDR2 (unless the OSERDES is DDR)
-        
-        // For example, a 8:1 DDR OSERDES which takes 8 inputs D0,D1,D2,D3,D4,D5,D6,D7 and output them serially
-        // The values supplied by D0,D2,D4,D6 are clocked out on the rising edge
-        // The values supplied by D1,D3,D5,D7 are clocked out on the falling edge
-        
-        // The solution is to create two 4:1 SDR OSERDES modules.
-        // One of the 2 modules will take D0,D2,D4,D6 inputs and output them serially. You route its output to the D0 pin of the ODDR.
-        // The other will output D1,D3,D5,D7 serially. You route its output to the D1 pin of the ODDR.
-       ```
-       ![image](https://user-images.githubusercontent.com/87559347/217683606-c43ca1e0-aff3-4ef9-93ac-cae2299651a9.png)
-    -  IODELAY2 is not used "due to some internal hardware issues of Spartan 6". In read operation, "PLL dynamic phase shift is used in lieu of IODELAY2 primitive for phase shift alignment between READ DQS strobe and 'ck' signal".
-        - The first instance of IODELAY2 is used as input delay for read operation, delay the `dq_r` by half clock period by default so `ck` can now sample the DQ at center of the data eye, instead of using `ck_90` and `ck_270` to sample the DQ. The delay can be adjusted for MPR read calibration method.
-        - The second instance of IODELAY is used also as input delay but for write operation, delay the `dq_w` output from ODDR2 (clocked by `ck`) by 90 from DQS instead of using `ck_90` to clock ODDR2. This delay is for write calibration levelling.
-        ```
-          // the IODELAY2 primitives for DQ bits could not be shared between read and write operations
-          // because if they are to be shared, they would be some combinational logic to select between 
-          // read and write operations which is not helpful at all for read operations.
-          // Note that for read pipeline, IDELAY is used before ISERDES, which means any extra logic for input of
-          // IDELAY will slow things down significantly until the read operations might fail to calibrate delay
-        ```
-        - MPR Read Calibration will then be used to align the DQS (phase shifted initially by zero) to ck via the IODELAY. Aligning the DQS will also align DQ (already shifted by 90).
-    - Observation: On read operation, we are still using `ck` to sample the dq_r, and we are not depending on DQ_S
-    - `data_read_is_ongoing` (ck180) -> ck -> dqs_iobuf_en  
-      `data_read_is_ongoing` (ck180) -> ck270 ->  dq_iobuf_en
-         - For non-x16, tri-state controller is `data_read_is_ongoing` but for x16 its `dqs_iobuf_en` .
-         ```
-         Is data_read_is_ongoing actually ck_180 or 83MHZ (clk_serdes)??
-         What is clk_serdes for???
-         Why dq_iobuf_en at ck270 domain?
-          hypothesis:
-          dq_r is sampled at ck270 and ck90, thus dq_r is on ck270
-          dq_w must also be on ck270 since DQ is shifted by 90 from DQS
-          THUS dq_iobuf_en is also on ck270
-         ```
-     - It is possible to do all 8 refresh commands inside one tREFI cycles then postpone refresh commands for 8*tREFI. tREFI is the "average" interval between REFRESH commands.
-     - reset (input, clk domain) is synced to ck_270 domain as reset input to IPs like IOSERDES.
-     - Controller FSM (clk_serdes, 83.3333MHz) sends `main_state`, `dram_command_bits`, `r_address`, and `r_bank_address` to asyn_fifo to ck_180 (333MHz) then to external pins.
-     - FIFO can be used for queueing commands BUT IS NOT USED ON THIS DESIGN. Full-rate DRAM commands transaction is possible with the usage of either (an OSERDES with a serialization factor of 2) or (2 words ck/2 in, ck out FIFO). You can stuff multiple user request commands where permitted in between command execution inside DRAM. One example would be where other banks may be activated while a write command was just sent.
-     - On this design, the SERDES enable multiple read and write (1 burst, 1 command) BUT IT CANNOT DO MULTIPLE COMMANDS AT ONCE (there is no command FIFO queue so at clk_serdes 83.333MHz, there can only be 1 command per 4 ck cycle of 333MHz) 
-     - Only at the first cycle of each FSM state are cmd sent, the rest are NOPs.
-     ![image](https://user-images.githubusercontent.com/87559347/218376154-5e450d45-8f92-4e97-87ac-c4bc8325f31f.png)
+   - It is possible to do all 8 refresh commands inside one tREFI cycles then postpone refresh commands for 9*tREFI. tREFI is the "average" interval between REFRESH commands.
+   - reset (input, clk domain) is synced to ck_270 domain as reset input to IPs like IOSERDES.
+   - Controller FSM (clk_serdes, 83.3333MHz) sends `main_state`, `dram_command_bits`, `r_address`, and `r_bank_address` to asyn_fifo to ck_180 (333MHz) then to external pins.
+   - FIFO can be used for queueing commands BUT IS NOT USED ON THIS DESIGN. Full-rate DRAM commands transaction is possible with the usage of either (an OSERDES with a serialization factor of 2) or (2 words ck/2 in, ck out FIFO). You can stuff multiple user request commands where permitted in between command execution inside DRAM. One example would be where other banks may be activated while a write command was just sent.
+   - On this design, the SERDES enable multiple read and write (1 burst, 1 command for 1 clk_serdes) BUT IT CANNOT DO MULTIPLE COMMANDS AT ONCE (there is no command FIFO queue so at clk_serdes 83.333MHz, there can only be 1 command per 1 clk_serdes or 4 ck cycle of 333MHz) 
+   - Only at the first cycle of each FSM state are cmd sent, the rest are NOPs.
+   ![image](https://user-images.githubusercontent.com/87559347/218376154-5e450d45-8f92-4e97-87ac-c4bc8325f31f.png)
 
-     - Uses conventional FSM. 1 state 1 command and will stay there until the time parameter is over (so interleaving is impossible since you had to finish the time delay allotted for every command and cannot interleave commands like read then activate another bank while on read latency). 
+   - Uses conventional FSM. 1 state 1 command and will stay there until the time parameter is over (so interleaving is impossible since you had to finish the time delay allotted for every command and cannot interleave commands like read then activate another bank while on read latency). 
 
-     - Ddr initialization (200us and 500us) requires long bitwidth counter and thus larger comparison hardware so we can divide the counter by two for less logic.
+   - Ddr initialization (200us and 500us) requires long bitwidth counter and thus larger comparison hardware so we can divide the counter by two for less logic.
 
-     - FSM flow for initialization:  reset-> reset_finish -> init_clock_enable -> MRS2 -> MRS3 (no MPR yet set since ZQCL needs to finish first) -> MRS3_TO_MRS1 -> MRS1 -> MRS0 -> ZQ_CALIBRATION (set MPR enable) -> IDLE -> STATE_PRECHARGE -> MRS3 (again but MPR is now set for read calibration) -> READ_AP (sync on delay chain) -> READ_AP_ACTUAL (issue read cmd and wait for latency) -> Read_data (after 1burst read, set MPR disable) -> MRS3-> wait_after_MPR -> IDLE
-       
-     - `data_read_is_ongoing`  is used to adjust dynamic phase shifting for generating ck_dynamic_90 and ck_dynamic_270 whih is used to sample dq_r on data_eye.
-     - AL (additive latency) can be used somehow to save a few cycles when you ACTIVATE multiple banks interleaved. [This source](https://blog.csdn.net/xingqingly/article/details/48997879) explains well and have examples on bank interleaving.
-     - "After enabling the clock outputs (ck) during initialization, the DLL in the RAM needs to "lock" to the clock signal.  A DLL reset "unlocks" the DLL, so that it can lock again to the current clock speed. The DLL is then used to generate DQS.  For read commands, the DRAM drives DQ and DQS pins, and uses the DLL to maintain a 90 degrees phase shift between DQ and DQS."
+   - FSM flow for initialization:  reset-> reset_finish -> init_clock_enable -> MRS2 -> MRS3 (no MPR yet set since ZQCL needs to finish first) -> MRS3_TO_MRS1 -> MRS1 -> MRS0 -> ZQ_CALIBRATION (set MPR enable) -> IDLE -> STATE_PRECHARGE -> MRS3 (again but MPR is now set for read calibration) -> READ_AP (sync on delay chain) -> READ_AP_ACTUAL (issue read cmd and wait for latency) -> Read_data (after 1burst read, set MPR disable) -> MRS3-> wait_after_MPR -> IDLE
 
-     - "READ/WRITE normally go first and refreshes are done while no READ/WRITE are pending, unless there is a danger that the queue underflows, in which case it becomes a high-priority request and READ/WRITE have to wait. So, in summary, it is to overcome the performance penalty due to refresh lockout at the higher densities"
-     
-     - Refresh operation flow: IDLE -> Precharge -> Refresh (decrease refresh queue) -> IDLE -> (repeat)
-     
-     - Read operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> write_ap(get col addr, burst+1, write) -> write_data (get col addr, burst+1, write) -> write_ap (get col_addr, burst+1, write) -> write_data (get col addr, finish autoprecharge) -> IDLE 
+   - `data_read_is_ongoing`  is used to adjust dynamic phase shifting for generating ck_dynamic_90 and ck_dynamic_270 which is used to sample dq_r on data_eye.
+   - AL (additive latency) can be used somehow to save a few cycles when you ACTIVATE multiple banks interleaved. [This source](https://blog.csdn.net/xingqingly/article/details/48997879) explains well and have examples on bank interleaving.
+   - "After enabling the clock outputs (ck) during initialization, the DLL in the RAM needs to "lock" to the clock signal.  A DLL reset "unlocks" the DLL, so that it can lock again to the current clock speed. The DLL is then used to generate DQS.  For read commands, the DRAM drives DQ and DQS pins, and uses the DLL to maintain a 90 degrees phase shift between DQ and DQS."
 
-     - Write operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> read_ap (get col adress) -> read_ap_actual (get col addr, read) -> read_data (get col addr, burst+1, read) -> read_ap_actual (get col addr, read) -> read_data (get col addr) -> IDLE
+   - "READ/WRITE normally go first and refreshes are done while no READ/WRITE are pending, unless there is a danger that the queue underflows, in which case it becomes a high-priority request and READ/WRITE have to wait. So, in summary, it is to overcome the performance penalty due to refresh lockout at the higher densities"
 
-     - FSM controls `data_read_is_ongoing` which specify direction of DQ. The PHY interface continuously reads from `dq_r` and generates output `data_from_ram`, and also continuously writes from input `data_to_ram` to `dq_w` regardless of what FSM state. The `data_read_is_ongoing` is the one who decides if the DQ will be owned by read (dq_r) or write (dq_w). 
-     -  "We can just send a spree of refresh commands, then wait some time (9x the nominal period 9*tREFI), then send another spree because that works out to about the nominal period and the refresh scheduler in the DRAM will do the rest".
+   - Refresh operation flow: IDLE -> Precharge -> Refresh (decrease refresh queue) -> IDLE -> (repeat)
+
+   - Read operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> write_ap(get col addr, burst+1, write) -> write_data (get col addr, burst+1, write) -> write_ap (get col_addr, burst+1, write) -> write_data (get col addr, finish autoprecharge) -> IDLE 
+
+   - Write operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> read_ap (get col adress) -> read_ap_actual (get col addr, read) -> read_data (get col addr, burst+1, read) -> read_ap_actual (get col addr, read) -> read_data (get col addr) -> IDLE
+
+   - FSM controls `data_read_is_ongoing` which specify direction of DQ. The PHY interface continuously reads from `dq_r` and generates output `data_from_ram`, and also continuously writes from input `data_to_ram` to `dq_w` regardless of what FSM state. The `data_read_is_ongoing` is the one who decides if the DQ will be owned by read (dq_r) or write (dq_w). 
+   -  "We can just send a spree of refresh commands, then wait some time (9x the nominal period 9*tREFI), then send another spree because that works out to about the nominal period and the refresh scheduler in the DRAM will do the rest".
 
 
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
