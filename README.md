@@ -209,6 +209,14 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
      - "After enabling the clock outputs (ck) during initialization, the DLL in the RAM needs to "lock" to the clock signal.  A DLL reset "unlocks" the DLL, so that it can lock again to the current clock speed. The DLL is then used to generate DQS.  For read commands, the DRAM drives DQ and DQS pins, and uses the DLL to maintain a 90 degrees phase shift between DQ and DQS."
 
      - "READ/WRITE normally go first and refreshes are done while no READ/WRITE are pending, unless there is a danger that the queue underflows, in which case it becomes a high-priority request and READ/WRITE have to wait. So, in summary, it is to overcome the performance penalty due to refresh lockout at the higher densities"
+     
+     - Refresh operation flow: IDLE -> Precharge -> Refresh (decrease refresh queue) -> IDLE -> (repeat)
+     
+     - Read operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> write_ap(get col addr, burst+1, write) -> write_data (get col addr, burst+1, write) -> write_ap (get col_addr, burst+1, write) -> write_data (get col addr, finish autoprecharge) -> IDLE 
+
+     - Write operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> read_ap (get col adress) -> read_ap_actual (get col addr, read) -> read_data (get col addr, burst+1, read) -> read_ap_actual (get col addr, read) -> read_data (get col addr) -> IDLE
+
+     - FSM controls `data_read_is_ongoing` which specify direction of DQ. The PHY interface continuously reads from `dq_r` and generates output `data_from_ram`, and also continuously writes from input `data_to_ram` to `dq_w` regardless of what FSM state. The `data_read_is_ongoing` is the one who decides if the DQ will be owned by read (dq_r) or write (dq_w). 
 
 
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
