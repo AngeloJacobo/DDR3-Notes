@@ -202,8 +202,6 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
    - Ddr initialization (200us and 500us) requires long bitwidth counter and thus larger comparison hardware so we can divide the counter by two for less logic.
 
    - FSM flow for initialization:  reset-> reset_finish -> init_clock_enable -> MRS2 -> MRS3 (no MPR yet set since ZQCL needs to finish first) -> MRS3_TO_MRS1 -> MRS1 -> MRS0 -> ZQ_CALIBRATION (set MPR enable) -> IDLE -> STATE_PRECHARGE -> MRS3 (again but MPR is now set for read calibration) -> READ_AP (sync on delay chain) -> READ_AP_ACTUAL (issue read cmd and wait for latency) -> Read_data (after 1burst read, set MPR disable) -> MRS3-> wait_after_MPR -> IDLE
-
-   - `data_read_is_ongoing`  is used to adjust dynamic phase shifting for generating ck_dynamic_90 and ck_dynamic_270 which is used to sample dq_r on data_eye.
    - AL (additive latency) can be used somehow to save a few cycles when you ACTIVATE multiple banks interleaved. [This source](https://blog.csdn.net/xingqingly/article/details/48997879) explains well and have examples on bank interleaving.
    - "After enabling the clock outputs (ck) during initialization, the DLL in the RAM needs to "lock" to the clock signal.  A DLL reset "unlocks" the DLL, so that it can lock again to the current clock speed. The DLL is then used to generate DQS.  For read commands, the DRAM drives DQ and DQS pins, and uses the DLL to maintain a 90 degrees phase shift between DQ and DQS."
 
@@ -211,9 +209,9 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
    - Refresh operation flow: IDLE -> Precharge -> Refresh (decrease refresh queue) -> IDLE -> (repeat)
 
-   - Read operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> write_ap(get col addr, burst+1, write) -> write_data (get col addr, burst+1, write) -> write_ap (get col_addr, burst+1, write) -> write_data (get col addr, finish autoprecharge) -> IDLE 
+   - Write operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> write_ap(get col addr, burst+1, write) -> write_data (get col addr, burst+1, write) -> write_ap (get col_addr, burst+1, write) -> write_data (get col addr, finish autoprecharge) -> IDLE 
 
-   - Write operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> read_ap (get col adress) -> read_ap_actual (get col addr, read) -> read_data (get col addr, burst+1, read) -> read_ap_actual (get col addr, read) -> read_data (get col addr) -> IDLE
+   - Read operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, read) -> read_ap (get col adress) -> read_ap_actual (get col addr, read) -> read_data (get col addr, burst+1, read) -> read_ap_actual (get col addr, read) -> read_data (get col addr) -> IDLE
 
    - FSM controls `data_read_is_ongoing` which specify direction of DQ. The PHY interface continuously reads from `dq_r` and generates output `data_from_ram`, and also continuously writes from input `data_to_ram` to `dq_w` regardless of what FSM state. The `data_read_is_ongoing` is the one who decides if the DQ will be owned by read (dq_r) or write (dq_w). 
    -  "We can just send a spree of refresh commands, then wait some time (9x the nominal period 9*tREFI), then send another spree because that works out to about the nominal period and the refresh scheduler in the DRAM will do the rest".
