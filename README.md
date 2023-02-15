@@ -147,7 +147,8 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
         // where w is the data width of your memory interface. (w == DQ_BITWIDTH)
         // This literally means SERDES_RATIO=8
        ```
-       ![image](https://user-images.githubusercontent.com/87559347/217502509-ad68b370-ec55-4368-a033-98985f29b391.png)
+       ![image](https://user-images.githubusercontent.com/87559347/219001850-b16ee3fa-e3cf-4c5a-816f-d378c6e2bf49.png)
+
 
     - **WRITE OPERATION**
        - OSERDES (serializer, parallel to series) is only SDR (Single-Data Rate) so unless the OSERDES is DDR, we will need two separate OSERDES. The output of these 2 OSERDES (`dq_w_d0` and `dq_w_d1`) will be used by ODDR2 to form the double data rate output of `dq_w`.
@@ -217,6 +218,7 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
      - Write operation flow: IDLE (get bank addr, activate) -> Activate (get bank and col addr, write) -> read_ap (get col adress) -> read_ap_actual (get col addr, read) -> read_data (get col addr, burst+1, read) -> read_ap_actual (get col addr, read) -> read_data (get col addr) -> IDLE
 
      - FSM controls `data_read_is_ongoing` which specify direction of DQ. The PHY interface continuously reads from `dq_r` and generates output `data_from_ram`, and also continuously writes from input `data_to_ram` to `dq_w` regardless of what FSM state. The `data_read_is_ongoing` is the one who decides if the DQ will be owned by read (dq_r) or write (dq_w). 
+     -  "We can just send a spree of refresh commands, then wait some time (9x the nominal period 9*tREFI), then send another spree because that works out to about the nominal period and the refresh scheduler in the DRAM will do the rest".
 
 
 - Due to PCB trace layout and high-speed DDR signal transmission, there is no alignment to any generic clock signal that we can depend upon, especially when data is coming back from the SDRAM chip. Thus, we could only depend upon incoming `DQS` signal to sample 'DQ' signal   
