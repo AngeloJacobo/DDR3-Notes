@@ -223,6 +223,9 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 -  CK and CK_n = OBUF
 
 
+### https://opencores.org/projects/wbddr3
+- Use DDR3-1600 with 800MHz clock. Since its impossible to get the logic to pass timing at that speed, use 200MHz. Data is 32-bit thus to reach full speed at 200MHz (5ns clk), we need to transfer 128-bits (32*800MHz/200MHz) per 5ns and issue 4 commands (800MHz/200MHz) per 5ns. 
+
 # Reference (YouTube):  
 - [Memory and DRAM Basics Series (Onur Mutlu Lectures)](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-IymxXpH_9vlZCOeA7Yfn9)  
 - [DRAM Basics in 7-part Series (Computer Science)](https://www.youtube.com/playlist?list=PLTd6ceoshpreE_xQfQ-akUMU1sEtthFdB)  
