@@ -225,6 +225,18 @@ In CPU, memory becomes bottleneck. Intel i7 is at 3GHz with 64 bit data path (19
 
 ### https://opencores.org/projects/wbddr3
 - Use DDR3-1600 with 800MHz clock. Since its impossible to get the logic to pass timing at that speed, use 200MHz. Data is 16-bit thus to reach full speed at 200MHz (5ns clk), we need to transfer 128-bits (16 x 2DDR x 800MHz/200MHz = 16x2x4 = 128) per 5ns and issue 4 commands (800MHz/200MHz = 4) per 5ns. 
+- On "Artix-7 FPGAs Data Sheet: DC and AC Switching Characteristics" shows possible DDR3 PHY rate
+  - 4:1 Memory Controller
+      - PHY: 303MHz (DDR3 min clk) - 333.33MHz (Artix-7 Max Rate, 667MHz/2)  
+      - Controller: 76MHz (303MHz/4) - 83MHz (333MHz/4)  
+
+  - 2:1 Memory Controller 
+      - PHY: 303MHz (DDR3 min clk) - 310MHz (Artix-7 Max Rate, 620MHz/2)  
+      - Controller: 152MHz (303MHz/2) - 155MHz (310MHz/2)   
+      
+    ![image](https://user-images.githubusercontent.com/87559347/220814975-6eb01531-939c-4c91-ad22-6f91d33bb8e7.png)
+
+
 
 # Reference (YouTube):  
 - [Memory and DRAM Basics Series (Onur Mutlu Lectures)](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-IymxXpH_9vlZCOeA7Yfn9)  
